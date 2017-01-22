@@ -6,3 +6,5 @@ debian/*/*
 .seconds
 .seconds-feature-workingtime
 .timelog-feature-workingtime
+.seconds-feature-sdsa
+.timelog-feature-sdsa

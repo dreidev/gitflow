@@ -43,7 +43,7 @@ usage() {
 }
 
 cmd_default() {
-	echo "$GITFLOW_VERSION"
+	echo "$GITFLOW_VERSION dreidev"
 }
 
 cmd_help() {
