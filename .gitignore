@@ -2,3 +2,9 @@ debian/files
 debian/*.substvars
 debian/*.debhelper.log
 debian/*/*
+.timelog
+.seconds
+.seconds-feature-workingtime
+.timelog-feature-workingtime
+.seconds-feature-sdsa
+.timelog-feature-sdsa

@@ -40,11 +40,12 @@ init() {
   require_git_repo
   require_gitflow_initialized
   gitflow_load_settings
+  parse_args "$@"
   PREFIX=$(git config --get gitflow.prefix.feature)
 }
 
 usage() {
-	echo "usage: git flow feature [list] [-v]"
+	echo "usage: git flow feature [list] [-v] s"
 	echo "       git flow feature start [-F] <name> [<base>]"
 	echo "       git flow feature finish [-rFkDS] [<name|nameprefix>]"
 	echo "       git flow feature publish <name>"
@@ -53,6 +54,8 @@ usage() {
 	echo "       git flow feature rebase [-i] [<name|nameprefix>]"
 	echo "       git flow feature checkout [<name|nameprefix>]"
 	echo "       git flow feature pull [-r] <remote> [<name>]"
+	echo "       git flow feature pause <name>"
+
 }
 
 cmd_default() {
@@ -198,8 +201,9 @@ cmd_start() {
 	parse_args "$@"
 	BASE=${2:-$DEVELOP_BRANCH}
 	require_name_arg
+	echo ".seconds-feature-$NAME\n.timelog-feature-$NAME" >> .gitignore
 
-	# sanity checks
+	# sanity checks	
 	require_branch_absent "$BRANCH"
 
 	# update the local repo with remote changes, if asked
@@ -217,6 +221,20 @@ cmd_start() {
 	if ! git_do checkout -b "$BRANCH" "$BASE"; then
 		die "Could not create feature branch '$BRANCH'"
 	fi
+
+	echo "How long do you think this feature will take(in hours)?"
+	read TIME_REQUIRED
+
+
+
+	echo $TIME_REQUIRED >> ".timelog-feature-$NAME"
+	
+	git add .gitignore
+
+	git commit --allow-empty -m "Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
+	
+	echo $(date +%s)  >> ".timelog-feature-$NAME"
+
 
 	echo
 	echo "Summary of actions:"
@@ -251,7 +269,7 @@ cmd_finish() {
 
 		# TODO: git_is_clean_working_tree() should provide an alternative
 		# exit code for "unmerged changes in working tree", which we should
-		# actually be testing for here
+		# actually be testing for 	
 		if git_is_clean_working_tree; then
 			FINISH_BASE=$(cat "$DOT_GIT_DIR/.gitflow/MERGE_BASE")
 
@@ -339,6 +357,14 @@ cmd_finish() {
 		echo
 		exit 1
 	fi
+
+	TOTAL_TIME=awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME
+	TIME_EXPECTED=line=$(head -n 1 .timelog-feature-$NAME)
+	seconds=$TOTAL_TIME; FINALTIME=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
+	
+	git commit --allow-empty -m "$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED"
+
+
 
 	# when no merge conflict is detected, just clean up the feature branch
 	helper_finish_cleanup
@@ -528,3 +554,82 @@ cmd_pull() {
 		echo "Created local branch $BRANCH based on $REMOTE's $BRANCH."
 	fi
 }
+
+cmd_pause() {
+
+	parse_args "$@"
+	require_name_arg
+
+	# sanity checks
+	require_branch "$BRANCH"
+	require_branch_absent "$BRANCH-paused"
+
+	echo $(date +%s)  >> ".timelog-feature-$NAME"
+
+	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+	PREV_LINE=$((LAST_LINE-1))
+
+	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
+	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$NAME)
+
+	TIME_USED=$((LAST_TIME-PREV_TIME))
+
+	echo "$TIME_USED" >> ".seconds-feature-$NAME"
+
+
+
+	seconds=$TIME_USED; TIMESTAMP=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
+
+
+	git add --all .
+	git commit -m "$BRANCH/WIP"
+	git commit --allow-empty -m "$BRANCH/WIP time-paused:$(date), time taken thus far:$TIMESTAMP"
+
+
+	git checkout --orphan  "$BRANCH-paused"	
+
+    
+	echo
+	echo "Summary of actions:"
+	echo "- Created orphan branch called '$BRANCH-paused'"
+	echo "- You are now free to take a break, you have spent $TIMESTAMP in this session"
+	echo ""
+	echo "Now, have some coffee and when you are  done, use:"
+	echo ""
+	echo "     git flow feature resume $BRANCH"
+	echo
+}
+
+
+cmd_resume() {
+
+	parse_args "$@"
+	require_name_arg
+
+	# sanity checks
+	require_branch "$BRANCH"
+
+	git checkout "$BRANCH"
+
+	git branch -D "$BRANCH-paused"	
+
+
+	git commit --allow-empty -m "$BRANCH/Back to Work at:$(date)"
+
+	echo $(date +%s)  >> ".timelog-feature-$NAME"
+
+
+	echo
+	echo "Summary of actions:"
+	echo "Switches you back to the '$BRANCH' branch"
+	echo "- You are now on branch '$BRANCH'"
+	echo ""
+	echo "Remmember when you need a break use:"
+	echo ""
+	echo "     git flow feature pause $NAME"
+	echo
+
+}
+
+
+ 
