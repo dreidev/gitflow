@@ -358,6 +358,18 @@ cmd_finish() {
 		exit 1
 	fi
 
+	echo $(date +%s)  >> ".timelog-feature-$NAME"
+
+	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+	PREV_LINE=$((LAST_LINE-1))
+
+	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
+	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$NAME)
+
+	TIME_USED=$((LAST_TIME-PREV_TIME))
+
+	echo "$TIME_USED" >> ".seconds-feature-$NAME"
+
 	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME)
 	TIME_EXPECTED=line=$(head -n 1 .timelog-feature-$NAME)
 	seconds=$TOTAL_TIME; FINALTIME=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
