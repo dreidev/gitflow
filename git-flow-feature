@@ -9,17 +9,17 @@
 #    http://github.com/nvie/gitflow
 #
 # Copyright 2010 Vincent Driessen. All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #    1. Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-# 
+#
 #    2. Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY VINCENT DRIESSEN ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -30,7 +30,7 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 # The views and conclusions contained in the software and documentation are
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Vincent Driessen.
@@ -203,7 +203,7 @@ cmd_start() {
 	require_name_arg
 	echo ".seconds-feature-$NAME\n.timelog-feature-$NAME" >> .gitignore
 
-	# sanity checks	
+	# sanity checks
 	require_branch_absent "$BRANCH"
 
 	# update the local repo with remote changes, if asked
@@ -228,11 +228,11 @@ cmd_start() {
 
 
 	echo $TIME_REQUIRED >> ".timelog-feature-$NAME"
-	
+
 	git add .gitignore
 
 	git commit --allow-empty -m "Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
-	
+
 	echo $(date +%s)  >> ".timelog-feature-$NAME"
 
 
@@ -265,11 +265,11 @@ cmd_finish() {
 		# TODO: detect that we're working on the correct branch here!
 		# The user need not necessarily have given the same $NAME twice here
 		# (although he/she should).
-		# 
+		#
 
 		# TODO: git_is_clean_working_tree() should provide an alternative
 		# exit code for "unmerged changes in working tree", which we should
-		# actually be testing for 	
+		# actually be testing for
 		if git_is_clean_working_tree; then
 			FINISH_BASE=$(cat "$DOT_GIT_DIR/.gitflow/MERGE_BASE")
 
@@ -291,7 +291,7 @@ cmd_finish() {
 			echo "Merge conflicts not resolved yet, use:"
 			echo "    git mergetool"
 			echo "    git commit"
-			echo 
+			echo
 			echo "You can then complete the finish by running it again:"
 			echo "    git flow feature finish $NAME"
 			echo
@@ -351,17 +351,17 @@ cmd_finish() {
 		echo "There were merge conflicts. To resolve the merge conflict manually, use:"
 		echo "    git mergetool"
 		echo "    git commit"
-		echo 
+		echo
 		echo "You can then complete the finish by running it again:"
 		echo "    git flow feature finish $NAME"
 		echo
 		exit 1
 	fi
 
-	TOTAL_TIME=awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME
+	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME)
 	TIME_EXPECTED=line=$(head -n 1 .timelog-feature-$NAME)
 	seconds=$TOTAL_TIME; FINALTIME=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
-	
+
 	git commit --allow-empty -m "$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED"
 
 
@@ -379,8 +379,8 @@ helper_finish_cleanup() {
 	if flag fetch; then
 		git_do push "$ORIGIN" ":refs/heads/$BRANCH"
 	fi
-	
-	
+
+
 	if noflag keep; then
 		if flag force_delete; then
 			git_do branch -D "$BRANCH"
@@ -586,9 +586,9 @@ cmd_pause() {
 	git commit --allow-empty -m "$BRANCH/WIP time-paused:$(date), time taken thus far:$TIMESTAMP"
 
 
-	git checkout --orphan  "$BRANCH-paused"	
+	git checkout --orphan  "$BRANCH-paused"
 
-    
+
 	echo
 	echo "Summary of actions:"
 	echo "- Created orphan branch called '$BRANCH-paused'"
@@ -611,7 +611,7 @@ cmd_resume() {
 
 	git checkout "$BRANCH"
 
-	git branch -D "$BRANCH-paused"	
+	git branch -D "$BRANCH-paused"
 
 
 	git commit --allow-empty -m "$BRANCH/Back to Work at:$(date)"
@@ -632,4 +632,3 @@ cmd_resume() {
 }
 
 
- 
