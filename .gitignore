@@ -16,3 +16,6 @@ debian/*/*
 .timelog-feature-finish_fix
 .seconds-feature-interrupt
 .timelog-feature-interrupt
+.seconds-feature-interrupt_final_test
+.timelog-feature-interrupt_final_test
+.breaktime-feature-interrupt_final_test
