@@ -28,3 +28,6 @@ debian/*/*
 .seconds-feature-shortcuts
 .timelog-feature-shortcuts
 .breaktime-feature-shortcuts
+.seconds-feature-test
+.timelog-feature-test
+.breaktime-feature-test
