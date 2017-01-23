@@ -222,7 +222,7 @@ cmd_start() {
 		die "Could not create feature branch '$BRANCH'"
 	fi
 
-	echo "How long do you think this feature will take (HH:MM:SS)?"
+	echo "How long do you think this feature will take in hours (e.g 1.5)?"
 	read TIME_REQUIRED
 
 
@@ -231,7 +231,7 @@ cmd_start() {
 
 	git add .gitignore
 
-	git commit --allow-empty -m "Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
+	git commit --allow-empty -m "--Flow message(start) -- Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
 
 	echo $(date +%s)  >> ".timelog-feature-$NAME"
 
@@ -383,7 +383,7 @@ cmd_finish() {
 	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
 	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
 
-	git commit --allow-empty -m "$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED, Time spent on breaks was $TOTAL_TIME_OFF"
+	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED, Time spent on breaks was $TOTAL_TIME_OFF"
 
 
 	# when no merge conflict is detected, just clean up the feature branch
@@ -580,21 +580,24 @@ cmd_pause() {
 	parse_args "$@"
 	require_name_arg
 
-	# sanity checks
-	require_branch "$BRANCH"
-	require_branch_absent "$BRANCH-paused"
+	local current_branch
+	local current_name
 
-	echo $(date +%s)  >> ".timelog-feature-$NAME"
+	current_branch=$(git branch --no-color | grep '^\* ' | grep -v 'no branch' | sed 's/^* //g')
+	current_name=${current_branch//[^[:alnum:]]/}
 
-	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+	
+	echo $(date +%s)  >> ".timelog-feature-$current_name"
+
+	LAST_LINE="$(wc -l < .timelog-feature-$current_name)"
 	PREV_LINE=$((LAST_LINE-1))
 
-	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$NAME)
+	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$current_name)
+	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$current_name)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
-	echo "$TIME_USED" >> ".seconds-feature-$NAME"
+	echo "$TIME_USED" >> ".seconds-feature-$current_name"
 
 
 
@@ -602,22 +605,22 @@ cmd_pause() {
 
 
 	git add --all .
-	git commit -m "$BRANCH/WIP"
-	git commit --allow-empty -m "$BRANCH/WIP time-paused:$(date), time taken thus far:$TIMESTAMP"
+	git commit -m "$current_branch/WIP"
+	git commit --allow-empty -m "--Flow message(pause) -- $current_branch/WIP time-paused:$(date), time taken thus far:$TIMESTAMP"
 
 
-	git checkout --orphan  "$BRANCH-paused"
+	git checkout -b  "$current_branch-paused" "flopharn"
 	git reset -- *
 
 
 	echo
 	echo "Summary of actions:"
-	echo "- Created orphan branch called '$BRANCH-paused'"
+	echo "- Created orphan branch called '$current_branch-paused'"
 	echo "- You are now free to take a break, you have spent $TIMESTAMP in this session"
 	echo ""
 	echo "Now, have some coffee and when you are  done, use:"
 	echo ""
-	echo "     git flow feature resume $BRANCH"
+	echo "     git flow feature resume $current_name"
 	echo
 }
 
@@ -627,44 +630,47 @@ cmd_interrupt() {
 	parse_args "$@"
 	require_name_arg
 
-	# sanity checks
-	require_branch "$BRANCH"
-	require_branch_absent "$BRANCH-paused"
+	local current_branch
+	local current_name
 
-	echo $(date +%s)  >> ".timelog-feature-$NAME"
+	current_branch=$(git branch --no-color | grep '^\* ' | grep -v 'no branch' | sed 's/^* //g')
+	current_name=${current_branch//[^[:alnum:]]/}
 
-	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+
+	echo $(date +%s)  >> ".timelog-feature-$current_name"
+
+	LAST_LINE="$(wc -l < .timelog-feature-$current_name)"
 	PREV_LINE=$((LAST_LINE-1))
 
-	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$NAME)
+	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$current_name)
+	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$current_name)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
-	echo "$TIME_USED" >> ".seconds-feature-$NAME"
+	echo "$TIME_USED" >> ".seconds-feature-$current_name"
 
-	touch .interrupt-feature-$NAME
+	touch .interrupt-feature-$current_name
 
 	seconds=$TIME_USED; TIMESTAMP=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
 
 
 	git add --all .
-	git commit -m "$BRANCH/WIP"
-	git commit --allow-empty -m "$BRANCH/WIP You were disturbed on $(date), time taken so far:$TIMESTAMP"
+	git commit -m "$current_branch/WIP"
+	git commit --allow-empty -m "--Flow message(interrupt) --$current_branch/WIP You were disturbed on $(date), time taken so far:$TIMESTAMP"
 
 
-	git checkout --orphan  "$BRANCH-paused"
+	git checkout -b  "$current_branch-paused" "flopharn"
 	git reset -- *
 
 
 	echo
 	echo "Summary of actions:"
-	echo "- Created orphan branch called '$BRANCH-paused'"
+	echo "- Created orphan branch called '$current_branch-paused'"
 	echo "- You are now free to take a break, you have spent $TIMESTAMP in this session"
 	echo ""
 	echo "Now, have some coffee and when you are  done, use:"
 	echo ""
-	echo "     git flow feature resume $BRANCH"
+	echo "     git flow feature resume $current_branch"
 	echo
 }
 
@@ -707,7 +713,7 @@ cmd_resume() {
 
 	git branch -D "$BRANCH-paused"
 
-	git commit --allow-empty -m "$BRANCH/Back to Work at:$(date) Time off:$TIME_OFF, Reason: $INTERRUPT_REASON"
+	git commit --allow-empty -m "--Flow message(resume) --$BRANCH/Back to Work at:$(date) Time off:$TIME_OFF, Reason: $INTERRUPT_REASON"
 
 	echo $(date +%s)  >> ".timelog-feature-$NAME"
 
@@ -719,7 +725,7 @@ cmd_resume() {
 	echo ""
 	echo "Remmember when you need a break use:"
 	echo ""
-	echo "     git flow feature pause $NAME"
+	echo "     git flow feature pause"
 	echo
 
 }

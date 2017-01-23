@@ -52,6 +52,9 @@ cmd_default() {
 	DEFINE_boolean defaults false 'use default branch naming conventions' d
 	parse_args "$@"
 
+	echo ".gitflow/" >> .gitignore
+	git_do commit .gitignore -m "gitignore"
+
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
 		git_do init
 	else
@@ -239,6 +242,17 @@ cmd_default() {
 		echo "How to name your supporting branch prefixes?"
 	fi
 
+		 git config --global alias.start 'flow feature start'
+	     git config --global alias.finish 'flow feature finish'
+		 git config --global alias.fin 'flow feature finish'
+		 git config --global alias.stop 'flow feature finish'
+	     git config --global alias.resume 'flow feature resume'
+		 git config --global alias.res 'flow feature resume'
+	     git config --global alias.interrupt 'flow feature interrupt'
+ 		 git config --global alias.int 'flow feature interrupt'
+	     git config --global alias.pause 'flow feature pause'
+		 git config --global alias.p 'flow feature pause'
+
 	local prefix
 
 	# Feature branches
@@ -308,6 +322,14 @@ cmd_default() {
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
 		git_do config gitflow.prefix.versiontag "$prefix"
 	fi
+	 
+	 mkdir .gitflow
+	 git checkout --orphan flopharn
+	 find . -path ./.git -prune -o \( \! -path ./.gitflow \) -exec rm -rf {} \; 2> /dev/null
+	 echo ".gitflow/" >> .gitignore
+	 git add . 
+	 git commit -m "flopharn was created successfully"
+	 git checkout $develop_branch
 
 
 	# TODO: what to do with origin?
