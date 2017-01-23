@@ -380,8 +380,8 @@ cmd_finish() {
 	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME)
 	
 	TIME_EXPECTED=$(head -n 1 .timelog-feature-$NAME)
-	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME TOTAL_TIME" "+%H hours %M minutes %S seconds")
-	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME TOTAL_BREAK_TIME" "+%H hours %M minutes %S seconds")
+	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
+	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
 
 	git commit --allow-empty -m "$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED, Time spent on breaks was $TOTAL_TIME_OFF"
 
