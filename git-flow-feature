@@ -370,8 +370,13 @@ cmd_finish() {
 
 	echo "$TIME_USED" >> ".seconds-feature-$NAME"
 
-	
-	TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' .breaktime-feature-$NAME)
+	if [ -f .breaktime-feature-$NAME ];
+		then
+		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' .breaktime-feature-$NAME)
+		else
+		TOTAL_BREAK_TIME=0
+	fi
+
 	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME)
 	
 	TIME_EXPECTED=$(head -n 1 .timelog-feature-$NAME)
