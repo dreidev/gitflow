@@ -599,6 +599,7 @@ cmd_pause() {
 
 
 	git checkout --orphan  "$BRANCH-paused"
+	git reset -- *
 
 
 	echo
