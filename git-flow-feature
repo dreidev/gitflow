@@ -201,7 +201,6 @@ cmd_start() {
 	parse_args "$@"
 	BASE=${2:-$DEVELOP_BRANCH}
 	require_name_arg
-	echo ".seconds-feature-$NAME\n.timelog-feature-$NAME\n.breaktime-feature-$NAME" >> .gitignore
 
 	# sanity checks
 	require_branch_absent "$BRANCH"
@@ -227,13 +226,13 @@ cmd_start() {
 
 
 
-	echo $TIME_REQUIRED >> ".timelog-feature-$NAME"
+	echo $TIME_REQUIRED >> "./gitflow/.timelog-feature-$NAME"
 
 	git add .gitignore
 
 	git commit --allow-empty -m "--Flow message(start) -- Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
 
-	echo $(date +%s)  >> ".timelog-feature-$NAME"
+	echo $(date +%s)  >> "./gitflow/.timelog-feature-$NAME"
 
 
 	echo
@@ -358,28 +357,28 @@ cmd_finish() {
 		exit 1
 	fi
 
-	echo $(date +%s)  >> ".timelog-feature-$NAME"
+	echo $(date +%s)  >> "./gitflow/.timelog-feature-$NAME"
 
-	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+	LAST_LINE="$(wc -l < ./gitflow/.timelog-feature-$NAME)"
 	PREV_LINE=$((LAST_LINE-1))
 
-	LAST_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" .timelog-feature-$NAME)
+	LAST_TIME=$(sed "${LAST_LINE}q;d" ./gitflow/.timelog-feature-$NAME)
+	PREV_TIME=$(sed "${PREV_LINE}q;d" ./gitflow/.timelog-feature-$NAME)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
-	echo "$TIME_USED" >> ".seconds-feature-$NAME"
+	echo "$TIME_USED" >> "./gitflow/.seconds-feature-$NAME"
 
-	if [ -f .breaktime-feature-$NAME ];
+	if [ -f ./gitflow/.breaktime-feature-$NAME ];
 		then
-		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' .breaktime-feature-$NAME)
+		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' ./gitflow/.breaktime-feature-$NAME)
 		else
 		TOTAL_BREAK_TIME=0
 	fi
 
-	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' .seconds-feature-$NAME)
+	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' ./gitflow/.seconds-feature-$NAME)
 	
-	TIME_EXPECTED=$(head -n 1 .timelog-feature-$NAME)
+	TIME_EXPECTED=$(head -n 1 ./gitflow/.timelog-feature-$NAME)
 	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
 	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
 
@@ -597,7 +596,7 @@ cmd_pause() {
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
-	echo "$TIME_USED" >> ".seconds-feature-$current_name"
+	echo "$TIME_USED" >> "./gitflow/.seconds-feature-$current_name"
 
 
 
@@ -647,7 +646,7 @@ cmd_interrupt() {
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
-	echo "$TIME_USED" >> ".seconds-feature-$current_name"
+	echo "$TIME_USED" >> "./gitflow/.seconds-feature-$current_name"
 
 	touch .interrupt-feature-$current_name
 
@@ -692,15 +691,15 @@ cmd_resume() {
 		INTERRUPT_REASON="No reason :)"
 	fi
 
-	LAST_LINE="$(wc -l < .timelog-feature-$NAME)"
+	LAST_LINE="$(wc -l < ./gitflow/.timelog-feature-$NAME)"
 
 	LAST_TIME=$(date +%s)
-	PREV_TIME=$(sed "${LAST_LINE}q;d" .timelog-feature-$NAME)
+	PREV_TIME=$(sed "${LAST_LINE}q;d" ./gitflow/.timelog-feature-$NAME)
 
 	BREAK_TIME=$((LAST_TIME-PREV_TIME))
 	
 
-	echo "$BREAK_TIME" >> ".breaktime-feature-$NAME"
+	echo "$BREAK_TIME" >> "./gitflow/.breaktime-feature-$NAME"
 
 
 	seconds=$BREAK_TIME; TIME_OFF=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
@@ -715,7 +714,7 @@ cmd_resume() {
 
 	git commit --allow-empty -m "--Flow message(resume) --$BRANCH/Back to Work at:$(date) Time off:$TIME_OFF, Reason: $INTERRUPT_REASON"
 
-	echo $(date +%s)  >> ".timelog-feature-$NAME"
+	echo $(date +%s)  >> "./gitflow/.timelog-feature-$NAME"
 
 
 	echo
