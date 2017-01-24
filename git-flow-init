@@ -9,17 +9,17 @@
 #    http://github.com/nvie/gitflow
 #
 # Copyright 2010 Vincent Driessen. All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #    1. Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-# 
+#
 #    2. Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY VINCENT DRIESSEN ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -30,7 +30,7 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 # The views and conclusions contained in the software and documentation are
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Vincent Driessen.
@@ -51,9 +51,11 @@ cmd_default() {
 	DEFINE_boolean force false 'force setting of gitflow branches, even if already configured' f
 	DEFINE_boolean defaults false 'use default branch naming conventions' d
 	parse_args "$@"
-	
+
+
+
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
-		git init
+		git_do init
 	else
 		# assure that we are not working in a repo with local changes
 		git_repo_is_headless || require_clean_working_tree
@@ -106,7 +108,7 @@ cmd_default() {
 				fi
 			done
 		fi
-		
+
 		printf "Branch name for production releases: [$default_suggestion] "
 		if noflag defaults; then
 			read answer
@@ -117,12 +119,18 @@ cmd_default() {
 
 		# check existence in case of an already existing repo
 		if [ "$should_check_existence" = "YES" ]; then
-			git_local_branch_exists "$master_branch" || \
+			# if no local branch exists and a remote branch of the same
+			# name exists, checkout that branch and use it for master
+			if ! git_local_branch_exists "$master_branch" && \
+				git_remote_branch_exists "origin/$master_branch"; then
+				git_do branch "$master_branch" "origin/$master_branch" >/dev/null 2>&1
+			elif ! git_local_branch_exists "$master_branch"; then
 				die "Local branch '$master_branch' does not exist."
+			fi
 		fi
 
 		# store the name of the master branch
-		git config gitflow.branch.master "$master_branch"
+		git_do config gitflow.branch.master "$master_branch"
 	fi
 
 	# add a develop branch if no such branch exists yet
@@ -147,11 +155,17 @@ cmd_default() {
 			default_suggestion=
 			for guess in $(git config --get gitflow.branch.develop) \
 			             'develop' 'int' 'integration' 'master'; do
-				if git_local_branch_exists "$guess"; then
+				if git_local_branch_exists "$guess" && [ "$guess" != "$master_branch" ]; then
 					default_suggestion="$guess"
 					break
 				fi
 			done
+
+			if [ -z $default_suggestion ]; then
+				should_check_existence=NO
+				default_suggestion=$(git config --get gitflow.branch.develop || echo develop)
+			fi
+
 		fi
 
 		printf "Branch name for \"next release\" development: [$default_suggestion] "
@@ -173,7 +187,7 @@ cmd_default() {
 		fi
 
 		# store the name of the develop branch
-		git config gitflow.branch.develop "$develop_branch"
+		git_do config gitflow.branch.develop "$develop_branch"
 	fi
 
 	# Creation of HEAD
@@ -182,8 +196,8 @@ cmd_default() {
 	# it to be able to create new branches.
 	local created_gitflow_branch=0
 	if ! git rev-parse --quiet --verify HEAD >/dev/null 2>&1; then
-		git symbolic-ref HEAD "refs/heads/$master_branch"
-		git commit --allow-empty --quiet -m "Initial commit"
+		git_do symbolic-ref HEAD "refs/heads/$master_branch"
+		git_do commit --allow-empty --quiet -m "Initial commit"
 		created_gitflow_branch=1
 	fi
 
@@ -200,7 +214,11 @@ cmd_default() {
 	# default production branch and develop was "created".  We should create
 	# the develop branch now in that case (we base it on master, of course)
 	if ! git_local_branch_exists "$develop_branch"; then
-		git branch --no-track "$develop_branch" "$master_branch"
+		if git_remote_branch_exists "origin/$develop_branch"; then
+			git_do branch "$develop_branch" "origin/$develop_branch" >/dev/null 2>&1
+		else
+			git_do branch --no-track "$develop_branch" "$master_branch"
+		fi
 		created_gitflow_branch=1
 	fi
 
@@ -209,19 +227,30 @@ cmd_default() {
 
 	# switch to develop branch if its newly created
 	if [ $created_gitflow_branch -eq 1 ]; then
-		git checkout -q "$develop_branch"
+		git_do checkout -q "$develop_branch"
 	fi
 
 	# finally, ask the user for naming conventions (branch and tag prefixes)
 	if flag force || \
-	   ! git config --get gitflow.prefix.feature >/dev/null 2>&1 || 
-	   ! git config --get gitflow.prefix.release >/dev/null 2>&1 || 
-	   ! git config --get gitflow.prefix.hotfix >/dev/null 2>&1 || 
-	   ! git config --get gitflow.prefix.support >/dev/null 2>&1 || 
+	   ! git config --get gitflow.prefix.feature >/dev/null 2>&1 ||
+	   ! git config --get gitflow.prefix.release >/dev/null 2>&1 ||
+	   ! git config --get gitflow.prefix.hotfix >/dev/null 2>&1 ||
+	   ! git config --get gitflow.prefix.support >/dev/null 2>&1 ||
 	   ! git config --get gitflow.prefix.versiontag >/dev/null 2>&1; then
 		echo
 		echo "How to name your supporting branch prefixes?"
 	fi
+
+		 git config --global alias.start 'flow feature start'
+	     git config --global alias.finish 'flow feature finish'
+		 git config --global alias.fin 'flow feature finish'
+		 git config --global alias.stop 'flow feature finish'
+	     git config --global alias.resume 'flow feature resume'
+		 git config --global alias.res 'flow feature resume'
+	     git config --global alias.interrupt 'flow feature interrupt'
+ 		 git config --global alias.int 'flow feature interrupt'
+	     git config --global alias.pause 'flow feature pause'
+		 git config --global alias.p 'flow feature pause'
 
 	local prefix
 
@@ -235,7 +264,7 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitflow.prefix.feature "$prefix"
+		git_do config gitflow.prefix.feature "$prefix"
 	fi
 
 	# Release branches
@@ -248,7 +277,7 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitflow.prefix.release "$prefix"
+		git_do config gitflow.prefix.release "$prefix"
 	fi
 
 
@@ -262,7 +291,7 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitflow.prefix.hotfix "$prefix"
+		git_do config gitflow.prefix.hotfix "$prefix"
 	fi
 
 
@@ -276,7 +305,7 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitflow.prefix.support "$prefix"
+		git_do config gitflow.prefix.support "$prefix"
 	fi
 
 
@@ -290,8 +319,13 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitflow.prefix.versiontag "$prefix"
+		git_do config gitflow.prefix.versiontag "$prefix"
 	fi
+ 	 mkdir -p "./.git/.gitflow"
+	 git checkout --orphan flopharn
+     git rm * --quiet --ignore-unmatch
+   	 git commit --allow-empty -m "flopharn was created successfully"
+	 git checkout $develop_branch
 
 
 	# TODO: what to do with origin?

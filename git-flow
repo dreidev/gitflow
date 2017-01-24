@@ -10,17 +10,17 @@
 #    http://github.com/nvie/gitflow
 #
 # Copyright 2010 Vincent Driessen. All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #    1. Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-# 
+#
 #    2. Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY VINCENT DRIESSEN ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -31,18 +31,23 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 # The views and conclusions contained in the software and documentation are
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Vincent Driessen.
 #
+
+# set this to workaround expr problems in shFlags on freebsd
+if uname -s | egrep -iq 'bsd'; then export EXPR_COMPAT=1; fi
 
 # enable debug mode
 if [ "$DEBUG" = "yes" ]; then
 	set -x
 fi
 
-export GITFLOW_DIR=$(dirname "$0")
+# The sed expression here replaces all backslashes by forward slashes.
+# This helps our Windows users, while not bothering our Unix users.
+export GITFLOW_DIR=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 
 usage() {
 	echo "usage: git flow <subcommand>"
@@ -75,6 +80,11 @@ main() {
 	# use the shFlags project to parse the command line arguments
 	. "$GITFLOW_DIR/gitflow-shFlags"
 	FLAGS_PARENT="git flow"
+
+  # allow user to request git action logging
+  DEFINE_boolean show_commands false 'show actions taken (git commands)' g
+
+  # do actual parsing
 	FLAGS "$@" || exit $?
 	eval set -- "${FLAGS_ARGV}"
 
@@ -94,7 +104,7 @@ main() {
 	# in that case, we interpret this arg as a flag for the default
 	# command
 	SUBACTION="default"
-	if [ "$1" != "" ] && ! echo "$1" | grep -q "^-"; then
+	if [ "$1" != "" ] && { ! echo "$1" | grep -q "^-"; } then
 		SUBACTION="$1"; shift
 	fi
 	if ! type "cmd_$SUBACTION" >/dev/null 2>&1; then
@@ -104,7 +114,10 @@ main() {
 	fi
 
 	# run the specified action
-	cmd_$SUBACTION "$@"
+  if [ $SUBACTION != "help" ] && [ $SUBCOMMAND != "init" ] ; then
+    init
+  fi
+  cmd_$SUBACTION "$@"
 }
 
 main "$@"
