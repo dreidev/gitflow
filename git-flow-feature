@@ -454,7 +454,7 @@ cmd_review() {
 	require_clean_working_tree
 	require_branch "$BRANCH"
 	git_do fetch -q "$ORIGIN"
-	require_branch_absent "$ORIGIN/$BRANCH"
+	# require_branch_absent "$ORIGIN/$BRANCH"
 
 	# create remote branch
 	git_do push "$ORIGIN" "$BRANCH:refs/heads/$BRANCH"
