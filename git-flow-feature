@@ -518,11 +518,11 @@ cmd_review() {
 			      }' \
 			  "https://api.github.com/repos/$OWNER/$REPO/pulls")
 
-		 if [ "$GITHUB_REQUEST" -eq 200  ]
+		 if [ "$GITHUB_REQUEST" -gt 300  ]
 			then
-				echo "Pull request created succesfully"
-			else
 				echo "Failed to create pull request"
+			else
+				echo "Pull request created succesfully"
 		fi
 		
 	fi
@@ -542,11 +542,11 @@ cmd_review() {
 				}' "https://gitlab.com/api/v3/projects/$OWNER%2F$REPO/merge_requests")
 		
 
-		if [ "$GITLAB_REQUEST" -eq 200  ]
+		if [ "$GITLAB_REQUEST" -gt 300  ]
 			then
-				echo "Merge request created succesfully"
-			else
 				echo "Failed to create merge request"
+			else
+				echo "Merge request created succesfully"
 		fi
 	fi
 
