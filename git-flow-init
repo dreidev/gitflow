@@ -328,8 +328,84 @@ cmd_default() {
 	 git checkout $develop_branch
 
 
-	# TODO: what to do with origin?
+
+	 if  git remote -v | grep github > /dev/null	
+	    then	
+			configure_github_api				
+	 fi
+
+	 if  git remote -v | grep gitlab > /dev/null
+	    then
+			configure_gitlab_api		
+	 fi
+
 }
+
+cmd_github() {
+	configure_github_api
+}
+
+cmd_gitlab() {
+	configure_gitlab_api
+}
+
+configure_github_api() {
+	read -r -p "Do you wish to automatically create merge requests on github? [y/N] " response
+	case "$response" in
+		[yY]) 
+			echo "Please provide your username."
+			read GITHUB_USERNAME
+			echo "Please provide a valid access token."
+			read GITHUB_TOKEN
+			TEST_GITHUB_AUTH=$(curl --write-out %{http_code} --silent --output /dev/null  -u  $GITHUB_USERNAME:$GITHUB_TOKEN https://api.github.com/user)
+
+			if [ "$TEST_GITHUB_AUTH" -eq 200  ]
+				then
+					echo $GITHUB_TOKEN > "./.git/.gitflow/.github_token"
+					echo $GITHUB_USERNAME > "./.git/.gitflow/.github_username"
+					echo "Authenticated successfully"
+				else
+					echo "Authentication failed"
+					configure_github_api
+			fi
+
+			;;
+		*)
+			echo "Cool"
+			;;
+	esac
+
+}
+
+configure_gitlab_api() {
+	read -r -p "Do you wish to automatically create merge requests on gitlab? [y/N] " response
+	case "$response" in
+		[yY]) 
+			echo "Please provide a valid Personal Access Token."
+			read GITLAB_TOKEN
+			TEST_GITLAB_AUTH=$(curl --write-out %{http_code} --silent --output /dev/null  --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.com/api/v3/user)
+
+			if [ "$TEST_GITLAB_AUTH" -eq 200  ]
+				then
+				    echo $GITLAB_TOKEN > "./.git/.gitflow/.gitlab_token"
+					echo "Authenticated successfully"
+				else
+					echo "Authentication failed"
+					configure_gitlab_api
+			fi
+
+			;;
+		*)
+			echo "Cool"
+			;;
+	esac
+
+}
+
+
+
+
+
 
 cmd_help() {
 	usage
