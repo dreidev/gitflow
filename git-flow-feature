@@ -504,7 +504,7 @@ cmd_review() {
 			--user $GITHUB_USERNAME:$GITHUB_TOKEN \
 			-d 	'{
 			  "title":"$GITHUB_USERNAME submitted $BRANCH branch for review",
-			  "head":"feature/implement-hooks",
+			  "head":"$BRANCH",
 			  "base":"develop",
 			  "body":"'"$GITHUB_USERNAME"' is asking for code review. Total time taken:$FINALTIME expected time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF -- message by gitflow",
 			  "maintainer_can_modify": true 			
