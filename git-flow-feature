@@ -230,7 +230,7 @@ cmd_start() {
 
 	git add .
 
-	git commit --allow-empty -m "--Flow message(start) -- Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED"
+	git commit --allow-empty -m "--Flow message(start) -- Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED hour(s)"
 
 	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
 
@@ -359,11 +359,8 @@ cmd_finish() {
 
 	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
 
-	LAST_LINE="$(wc -l < ./.git/.gitflow/.timelog-feature-$NAME)"
-	PREV_LINE=$((LAST_LINE-1))
-
-	LAST_TIME=$(sed "${LAST_LINE}q;d" ./.git/.gitflow/.timelog-feature-$NAME)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" ./.git/.gitflow/.timelog-feature-$NAME)
+	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
+	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$NAME | head -1)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
@@ -382,7 +379,7 @@ cmd_finish() {
 	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
 	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
 
-	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED, Time spent on breaks was $TOTAL_TIME_OFF"
+	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF"
 
 
 	# when no merge conflict is detected, just clean up the feature branch
@@ -445,6 +442,123 @@ cmd_publish() {
 	echo "- A new remote branch '$BRANCH' was created"
 	echo "- The local branch '$BRANCH' was configured to track the remote branch"
 	echo "- You are now on branch '$BRANCH'"
+	echo
+}
+
+
+cmd_review() {
+	parse_args "$@"
+	expand_nameprefix_arg
+
+	# sanity checks
+	require_clean_working_tree
+	require_branch "$BRANCH"
+	git_do fetch -q "$ORIGIN"
+	# require_branch_absent "$ORIGIN/$BRANCH"
+
+	# create remote branch
+	git_do push "$ORIGIN" "$BRANCH:refs/heads/$BRANCH"
+	git_do fetch -q "$ORIGIN"
+
+	# configure remote tracking
+	git_do config "branch.$BRANCH.remote" "$ORIGIN"
+	git_do config "branch.$BRANCH.merge" "refs/heads/$BRANCH"
+	git_do checkout "$BRANCH"
+
+
+	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
+
+	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
+	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$NAME | head -1)
+
+	TIME_USED=$((LAST_TIME-PREV_TIME))
+
+	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$NAME"
+
+	if [ -f ./.git/.gitflow/.breaktime-feature-$NAME ];
+		then
+		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.breaktime-feature-$NAME)
+		else
+		TOTAL_BREAK_TIME=0
+	fi
+
+	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.seconds-feature-$NAME)
+	
+	TIME_EXPECTED=$(head -n 1 ./.git/.gitflow/.timelog-feature-$NAME)
+	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
+	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
+
+	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expected time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF"
+
+	GIT_URL=$(git config --get remote.origin.url)
+	GIT_URL_WITHOUT_SUFFIX="${GIT_URL%.*}"
+	REPO="$(basename "${GIT_URL_WITHOUT_SUFFIX}")"
+	URL_WITH_OWNER="$(dirname "${GIT_URL_WITHOUT_SUFFIX})")"
+	OWNER=$(basename $(echo $URL_WITH_OWNER | tr ":" /))
+	DEVELOPMENT_BRANCH=$(git config --get gitflow.branch.develop)
+
+	if [ -f ./.git/.gitflow/.github_token ];
+		then
+		
+		GITHUB_USERNAME=$(tail -1 ./.git/.gitflow/.github_username | head -1)
+		GITHUB_TOKEN=$(tail -1 ./.git/.gitflow/.github_token | head -1)
+
+        GITHUB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "Content-Type: application/json" \
+            -H "Cache-Control: no-cache" \
+			--user $GITHUB_USERNAME:$GITHUB_TOKEN \
+			-d 	'{
+			  "title":"'"$GITHUB_USERNAME"' submitted '"$BRANCH"' branch for review",
+			  "head":"'"$BRANCH"'",
+			  "base":"'"$DEVELOPMENT_BRANCH"'",
+			  "body":"'"$GITHUB_USERNAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow",
+			  "maintainer_can_modify": true 			
+			      }' \
+			  "https://api.github.com/repos/$OWNER/$REPO/pulls")
+		
+
+		 if [ "$GITHUB_REQUEST" -gt 300  ]
+				echo "Failed to create pull request"
+			then
+	        	echo "Pull request created on github please inform the code reviewer by mentioning them in the comments"
+			else
+		fi
+		
+	fi
+
+
+	if [ -f ./.git/.gitflow/.gitlab_token ];
+		then
+
+		GITLAB_TOKEN=$(tail -1 ./.git/.gitflow/.gitlab_token | head -1)
+		USER_NAME=$(git config --get --global user.name)
+
+		GITLAB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 209ed2f2-a7bd-ab33-a432-1d884669976b" -d '{
+				"target_branch": "'"$DEVELOPMENT_BRANCH"'",
+				"source_branch": "'"$BRANCH"'",
+				"title": "'"$BRANCH Merge Request by $USER_NAME"'",
+				"body":"'"$USER_NAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow"
+				}' "https://gitlab.com/api/v3/projects/$OWNER%2F$REPO/merge_requests")
+		
+
+
+		if [ "$GITLAB_REQUEST" -gt 300  ]
+			then
+				echo "Failed to create merge request"
+			else
+	        	echo "Merge request created on gitlab please inform the code reviewer by mentioning them in the comments"
+		fi
+	fi
+
+
+	git pause
+	git checkout $DEVELOPMENT_BRANCH
+	git pull
+	
+	echo
+	echo "Summary of actions:"
+	echo "- A new remote branch '$BRANCH' was created"
+	echo "- The local branch '$BRANCH' was configured to track the remote branch"
+	echo "- You are now on branch '$DEVELOPMENT_BRANCH'"
 	echo
 }
 
@@ -588,14 +702,11 @@ cmd_pause() {
 	
 	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$current_name"
 
-	LAST_LINE="$(wc -l < ./.git/.gitflow/.timelog-feature-$current_name)"
-	PREV_LINE=$((LAST_LINE-1))
-
-	LAST_TIME=$(sed "${LAST_LINE}q;d" ./.git/.gitflow/.timelog-feature-$current_name)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" ./.git/.gitflow/.timelog-feature-$current_name)
+	
+	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$current_name | head -1)
+	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$current_name | head -1)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
-		echo "dummy" >> "./.git/.gitflow/.bool-$current_name"
 
 	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$current_name"
 
@@ -640,11 +751,9 @@ cmd_interrupt() {
 
 	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$current_name"
 
-	LAST_LINE="$(wc -l < ./.git/.gitflow/.timelog-feature-$current_name)"
-	PREV_LINE=$((LAST_LINE-1))
 
-	LAST_TIME=$(sed "${LAST_LINE}q;d" ./.git/.gitflow/.timelog-feature-$current_name)
-	PREV_TIME=$(sed "${PREV_LINE}q;d" ./.git/.gitflow/.timelog-feature-$current_name)
+	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$current_name | head -1)
+	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$current_name | head -1)
 
 	TIME_USED=$((LAST_TIME-PREV_TIME))
 
@@ -694,10 +803,9 @@ cmd_resume() {
 		INTERRUPT_REASON="No reason :)"
 	fi
 
-	LAST_LINE="$(wc -l < ./.git/.gitflow/.timelog-feature-$NAME)"
 
 	LAST_TIME=$(date +%s)
-	PREV_TIME=$(sed "${LAST_LINE}q;d" ./.git/.gitflow/.timelog-feature-$NAME)
+	PREV_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
 
 	BREAK_TIME=$((LAST_TIME-PREV_TIME))
 	
