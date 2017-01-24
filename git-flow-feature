@@ -497,9 +497,6 @@ cmd_review() {
 	OWNER=$(basename $(echo $URL_WITH_OWNER | tr ":" /))
 	DEVELOPMENT_BRANCH=$(git config --get gitflow.branch.develop)
 
-	echo $REPO $OWNER
-
-	echo $BRANCH
 	if [ -f ./.git/.gitflow/.github_token ];
 		then
 		
@@ -517,13 +514,14 @@ cmd_review() {
 			  "maintainer_can_modify": true 			
 			      }' \
 			  "https://api.github.com/repos/$OWNER/$REPO/pulls")
+		
+		echo "Pull request created on github please inform the code reviewer by mentioning them in the comments"
 
-		 if [ "$GITHUB_REQUEST" -gt 300  ]
-			then
-				echo "Failed to create pull request"
-			else
-				echo "Pull request created succesfully"
-		fi
+		#  if [ "$GITHUB_REQUEST" -gt 300  ]
+		# 	then
+		# 		echo "Failed to create pull request"
+		# 	else
+		# fi
 		
 	fi
 
@@ -541,14 +539,16 @@ cmd_review() {
 				"body":"'"$USER_NAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow"
 				}' "https://gitlab.com/api/v3/projects/$OWNER%2F$REPO/merge_requests")
 		
+		echo "Pull request created on gitlab please inform the code reviewer by mentioning them in the comments"
 
-		if [ "$GITLAB_REQUEST" -gt 300  ]
-			then
-				echo "Failed to create merge request"
-			else
-				echo "Merge request created succesfully"
-		fi
-	fi
+
+	# 	if [ "$GITLAB_REQUEST" -gt 300  ]
+	# 		then
+	# 			echo "Failed to create merge request"
+	# 		else
+	# 			echo "Merge request created succesfully"
+	# 	fi
+	# fi
 
 
 
