@@ -492,7 +492,7 @@ cmd_review() {
 
 
 
-
+	echo $BRANCH
 	if [ -f ./.git/.gitflow/.github_token ];
 		then
 		
