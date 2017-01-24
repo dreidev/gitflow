@@ -52,8 +52,7 @@ cmd_default() {
 	DEFINE_boolean defaults false 'use default branch naming conventions' d
 	parse_args "$@"
 
-	echo ".gitflow/" >> .gitignore
-	git_do commit .gitignore -m "gitignore"
+
 
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
 		git_do init
@@ -322,13 +321,10 @@ cmd_default() {
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
 		git_do config gitflow.prefix.versiontag "$prefix"
 	fi
-	 
-	 mkdir .gitflow
+ 	 mkdir -p "./.git/.gitflow"
 	 git checkout --orphan flopharn
-	 find . -path ./.git -prune -o \( \! -path ./.gitflow \) -exec rm -rf {} \; 2> /dev/null
-	 echo ".gitflow/" >> .gitignore
-	 git add . 
-	 git commit -m "flopharn was created successfully"
+     git rm * --quiet --ignore-unmatch
+   	 git commit --allow-empty -m "flopharn was created successfully"
 	 git checkout $develop_branch
 
 
