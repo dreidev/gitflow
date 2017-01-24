@@ -495,6 +495,7 @@ cmd_review() {
 	REPO="$(basename "${GIT_URL_WITHOUT_SUFFIX}")"
 	URL_WITH_OWNER="$(dirname "${GIT_URL_WITHOUT_SUFFIX})")"
 	OWNER=$(basename $(echo $URL_WITH_OWNER | tr ":" /))
+	DEVELOPMENT_BRANCH=$(git config --get gitflow.branch.develop)
 
 	echo $REPO $OWNER
 
@@ -505,33 +506,49 @@ cmd_review() {
 		GITHUB_USERNAME=$(tail -1 ./.git/.gitflow/.github_username | head -1)
 		GITHUB_TOKEN=$(tail -1 ./.git/.gitflow/.github_token | head -1)
 
-         curl -X POST -H "Content-Type: application/json" \
+        GITHUB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "Content-Type: application/json" \
             -H "Cache-Control: no-cache" \
 			--user $GITHUB_USERNAME:$GITHUB_TOKEN \
 			-d 	'{
 			  "title":"'"$GITHUB_USERNAME"' submitted '"$BRANCH"' branch for review",
 			  "head":"'"$BRANCH"'",
-			  "base":"develop",
+			  "base":"'"$DEVELOPMENT_BRANCH"'",
 			  "body":"'"$GITHUB_USERNAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow",
 			  "maintainer_can_modify": true 			
 			      }' \
-			  "https://api.github.com/repos/$OWNER/$REPO/pulls"
-		 
+			  "https://api.github.com/repos/$OWNER/$REPO/pulls")
 
-		# else
-		# INTERRUPT_REASON="No reason :)"
+		 if [ "$GITHUB_REQUEST" -eq 200  ]
+			then
+				echo "Pull request created succesfully"
+			else
+				echo "Failed to create pull request"
+		fi
+		
 	fi
 
 
-	# if [ -f ./.git/.gitflow/.gitlab_token ];
-	# 	then
-	# 	echo "Why were you interrupted?"
-	# 	read INTERRUPT_REASON
-	# 	rm ./.git/.gitflow/.interrupt-feature-$NAME
-	# 	# else
-	# 	# INTERRUPT_REASON="No reason :)"
-	# fi
+	if [ -f ./.git/.gitflow/.gitlab_token ];
+		then
 
+		GITLAB_TOKEN=$(tail -1 ./.git/.gitflow/.gitlab_token | head -1)
+		USER_NAME=$(git config --get --global user.name)
+
+		GITLAB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 209ed2f2-a7bd-ab33-a432-1d884669976b" -d '{
+				"target_branch": "'"$DEVELOPMENT_BRANCH"'",
+				"source_branch": "'"$BRANCH"'",
+				"title": "'"$BRANCH Merge Request by $USER_NAME"'",
+				"body":"'"$USER_NAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow"
+				}' "https://gitlab.com/api/v3/projects/$OWNER%2F$REPO/merge_requests")
+		
+
+		if [ "$GITLAB_REQUEST" -eq 200  ]
+			then
+				echo "Merge request created succesfully"
+			else
+				echo "Failed to create merge request"
+		fi
+	fi
 
 
 
