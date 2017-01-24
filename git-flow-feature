@@ -490,7 +490,13 @@ cmd_review() {
 
 	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expected time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF"
 
+	GIT_URL=$(git config --get remote.origin.url)
+	GIT_URL_WITHOUT_SUFFIX="${GIT_URL%.*}"
+	REPO="$(basename "${GIT_URL_WITHOUT_SUFFIX}")"
+	URL_WITH_OWNER="$(dirname "${GIT_URL_WITHOUT_SUFFIX})")"
+	OWNER=$(basename $(echo $URL_WITH_OWNER | tr ":" /))
 
+	echo $REPO $OWNER
 
 	echo $BRANCH
 	if [ -f ./.git/.gitflow/.github_token ];
@@ -509,7 +515,7 @@ cmd_review() {
 			  "body":"'"$GITHUB_USERNAME"' is asking for code review. Total time taken:'"$FINALTIME"' expected time was '"$TIME_EXPECTED"' hour(s), Time spent on breaks was '"$TOTAL_TIME_OFF"' -- message by gitflow",
 			  "maintainer_can_modify": true 			
 			      }' \
-			  "https://api.github.com/repos/dreidev/gitflow/pulls"
+			  "https://api.github.com/repos/$OWNER/$REPO/pulls"
 		 
 
 		# else
