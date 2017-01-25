@@ -1,13 +1,12 @@
-git-flow
-========
+# git-flow (Dreidev Edition)
 
 A collection of Git extensions to provide high-level repository operations
 for Vincent Driessen's [branching model](http://nvie.com/git-model "original
-blog post").
+blog post"). This fork adds functionality not added to the original branch.
 
 
-Getting started
----------------
+## Getting started
+
 For the best introduction to get started with `git flow`, please read Jeff
 Kreeftmeijer's blog post:
 
@@ -17,75 +16,63 @@ Or have a look at one of these screen casts:
 
 * [How to use a scalable Git branching model called git-flow](http://buildamodule.com/video/change-management-and-version-control-deploying-releases-features-and-fixes-with-git-how-to-use-a-scalable-git-branching-model-called-gitflow) (by Build a Module)
 * [A short introduction to git-flow](http://vimeo.com/16018419) (by Mark Derricutt)
-* [On the path with git-flow](http://codesherpas.com/screencasts/on_the_path_gitflow.mov) (by Dave Bock)
+* [On the path with git-flow](https://vimeo.com/codesherpas/on-the-path-gitflow) (by Dave Bock)
 
+A quick cheatsheet was made by Daniel Kummer:
 
-Installing git-flow
--------------------
-See the Wiki for up-to-date [Installation Instructions](https://github.com/nvie/gitflow/wiki/Installation).
+[http://danielkummer.github.io/git-flow-cheatsheet/](http://danielkummer.github.io/git-flow-cheatsheet/)
 
+## Installing git-flow
 
-Integration with your shell
----------------------------
-For those who use the [Bash](http://www.gnu.org/software/bash/) or
-[ZSH](http://www.zsh.org) shell, please check out the excellent work on the
-[git-flow-completion](http://github.com/bobthecow/git-flow-completion) project
-by [bobthecow](http://github.com/bobthecow). It offers tab-completion for all
-git-flow subcommands and branch names.
+npm -i gitflow (Mac and Linux users only)
 
+## Contributing
 
-FAQ
----
-See the [FAQ](http://github.com/nvie/gitflow/wiki/FAQ) section of the project
-Wiki.
-
-
-Please help out
----------------
-This project is still under development. Feedback and suggestions are very
-welcome and I encourage you to use the [Issues
-list](http://github.com/nvie/gitflow/issues) on Github to provide that
-feedback.
-
-Feel free to fork this repo and to commit your additions. For a list of all
-contributors, please see the [AUTHORS](AUTHORS) file.
-
-Any questions, tips, or general discussion can be posted to our Google group:
-[http://groups.google.com/group/gitflow-users](http://groups.google.com/group/gitflow-users)
-
-Contributing
-------------
 Fork the repository.  Then, run:
 
-    git clone --recursive git@github.com:<username>/gitflow.git
-    cd gitflow
-    git branch master origin/master
-    git flow init -d
-    git flow feature start <your feature>
+```shell
+git clone -b master git@github.com:<username>/gitflow.git
+cd gitflow
+```
 
-Then, do work and commit your changes.  **Hint**: ``export PATH=`pwd`:$PATH``
-from within the gitflow directory makes sure you're using the version of
-gitflow you're currently developing.
+The `-b master` switch has to be added since the fork operation automatically 
+clones the `develop` branch of the official gitflow repository and cloning it 
+results in a local repository with just a `develop` branch.
 
-    git flow feature publish <your feature>
+If you do not have gitflow installed yet install it by running `make && make install`.
+
+After that initialize the local gitflow repository with gitflow itself:
+
+```shell
+git flow init -d
+git flow feature start <your feature>
+```
+
+Then, do work and commit your changes.
+
+```shell
+git flow feature publish <your feature>
+```
 
 When done, open a pull request to your feature branch.
 
-License terms
--------------
-git-flow is published under the liberal terms of the BSD License, see the
-[LICENSE](LICENSE) file. Although the BSD License does not require you to share
-any modifications you make to the source code, you are very much encouraged and
-invited to contribute back your modifications to the community, preferably
-in a Github fork, of course.
+## License terms
 
+git-flow is published under the FreeBSD License, see the
+[LICENSE](LICENSE) file. Although the FreeBSD License does not require you to
+share any modifications you make to the source code, you are very much
+encouraged and invited to contribute back your modifications to the community,
+preferably in a Github fork, of course.
+
+
+## git flow usage
 
 ### Initialization
 
 To initialize a new repo with the basic branch structure, use:
-  
-		git flow init [-d]
-  
+
+    git flow init [-d]
+
 This will then interactively prompt you with some questions on which branches
 you would like to use as development and production branches, and how you
 would like your prefixes be named. You may simply press Return on any of
@@ -93,56 +80,89 @@ those questions to accept the (sane) default suggestions.
 
 The ``-d`` flag will accept all defaults.
 
+![Screencast git flow init](http://i.imgur.com/lFQbY5V.gif)
 
 ### Creating feature/release/hotfix/support branches
 
-* To list/start/finish feature branches, use:
-  
-  		git flow feature
-  		git flow feature start <name> [<base>]
-  		git flow feature finish <name>
-  
-  For feature branches, the `<base>` arg must be a commit on `develop`.
+* To list/start/finish/delete feature branches, use:
+
+   * Note, if installed via npm the 'git' can be dropped from every command.
+
+        git flow feature (flow)
+        git flow feature start <name> [<base>] (flow feature start/flow start/git start)
+        git flow feature pause (flow feature pause/flow pause/git pause)
+        git flow feature interrupt (flow feature interrupt/flow interrupt/git interrupt)
+        git flow feature resume <name> (flow feature resume/flow resume/git resume)
+        git flow feature finish <name> (flow feature finish/flow finish/git finish)
+        git flow feature delete <name> (flow feature delete/flow delete/git delete)
+
+  For feature branches, the `<base>` arg must be a branch, when omitted it defaults to the develop branch.
 
 * To push/pull a feature branch to the remote repository, use:
 
-  		git flow feature publish <name>
-		  git flow feature pull <remote> <name>
+        git flow feature publish <name> (flow feature publish/flow publish/git publish)
+        git flow feature review <name> (flow feature resume/flow review/git review)
+        git flow feature track <name> (flow feature resume/flow review/git review)
 
-* To list/start/finish release branches, use:
-  
-  		git flow release
-  		git flow release start <release> [<base>]
-  		git flow release finish <release>
-  
-  For release branches, the `<base>` arg must be a commit on `develop`.
-  
-* To list/start/finish hotfix branches, use:
-  
-  		git flow hotfix
-  		git flow hotfix start <release> [<base>]
-  		git flow hotfix finish <release>
-  
-  For hotfix branches, the `<base>` arg must be a commit on `master`.
+* To list/start/finish/delete release branches, use:
+
+   * Note, if installed via npm the 'git' can be dropped from every command.
+
+        git flow release
+        git flow release start <release> [<base>]
+        git flow release finish <release>
+        git flow release delete <release>
+
+  For release branches, the `<base>` arg must be a branch, when omitted it defaults to the develop branch.
+
+* To list/start/finish/delete hotfix branches, use:
+
+        git flow hotfix
+        git flow hotfix start <release> [<base>]
+        git flow hotfix finish <release>
+        git flow hotfix delete <release>
+
+  For hotfix branches, the `<base>` arg must be a branch, when omitted it defaults to the production branch.
 
 * To list/start support branches, use:
-  
-  		git flow support
-  		git flow support start <release> <base>
-  
-  For support branches, the `<base>` arg must be a commit on `master`.
 
+        git flow support
+        git flow support start <release> <base>
 
-Showing your appreciation
-=========================
-A few people already requested it, so now it's here: a Flattr button.
+  For support branches, the `<base>` arg must be a branch, when omitted it defaults to the production branch.
 
-Of course, the best way to show your appreciation for the original
-[blog post](http://nvie.com/posts/a-successful-git-branching-model/) or the git-flow tool itself remains
-contributing to the community.  If you'd like to show your appreciation in
-another way, however, consider Flattr'ing me:
+### Share features with others
 
-[![Flattr this][2]][1]
+You can easily publish a feature you are working on. The reason can be to allow other programmers to work on it or to access it from another machine. The publish/track feature of gitflow simplify the creation of a remote branch and its tracking.
 
-[1]: http://flattr.com/thing/53771/git-flow
-[2]: http://api.flattr.com/button/button-static-50x60.png
+When you want to publish a feature just use:
+
+    git flow feature publish <name>
+
+or, if you already are into the `feature/<name>` branch, just issue:
+
+    git flow feature publish
+
+Now if you execute `git branch -avv` you will see that your branch `feature/<name>` tracks `[origin/feature/<name>]`. To track the same remote branch in another clone of the same repository use:
+
+    git flow feature track <name>
+
+This will create a local feature `feature/<name>` that tracks the same remote branch as the original one, that is `origin/feature/<name>`.
+
+When one developer (depending on your work flow) finishes working on the feature he or she can issue `git flow feature finish <name>` and this will automatically delete the remote branch. All other developers shall then run:
+
+    git flow feature delete <name>
+
+to get rid of the local feature that tracks a remote branch that no more exist.
+
+### Using Hooks and Filters
+
+For a wide variety of commands hooks or filters can be called before and after
+the command.  
+The files should be placed in .git/hooks  
+In the directory hooks you can find examples of all the hooks available.
+
+## Showing your appreciation
+
+Of course, the best way to show your appreciation for the git-flow tool itself
+remains contributing to the community.
