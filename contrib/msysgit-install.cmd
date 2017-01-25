@@ -38,7 +38,6 @@ if errorlevel 4 if not errorlevel 5 goto :AccessDenied
 if errorlevel 1 set ERR=1
 xcopy "%~dp0\..\git-flow*"           "%GIT_HOME%\bin"                 /Y /R /F || set ERR=1
 xcopy "%~dp0\..\gitflow-*"           "%GIT_HOME%\bin"                 /Y /R /F || set ERR=1
-xcopy "%~dp0\..\shFlags\src\shflags" "%GIT_HOME%\bin\gitflow-shFlags" /Y /R /F || set ERR=1
 
 if %ERR%==1 choice /T 30 /C Y /D Y /M "Some unexpected errors happened. Sorry, you'll have to fix them by yourself."
 
@@ -63,7 +62,6 @@ goto :End
 :ChkGetopt
 :: %1 is getopt.exe
 if exist "%GIT_HOME%\bin\%1" goto :EOF
-if exist "%USERPROFILE%\bin\%1" goto :EOF
 if exist "%~f$PATH:1" goto :EOF
 echo %GIT_HOME%\bin\%1 not found.>&2
 echo You have to install this file manually. See the GitFlow README.

@@ -2,81 +2,156 @@
 # git-flow -- A collection of Git extensions to provide high-level
 # repository operations for Vincent Driessen's branching model.
 #
-# Original blog post presenting this model is found at:
-#    http://nvie.com/git-model
+# A blog post presenting this model is found at:
+#    http://blog.avirtualhome.com/development-workflow-using-git/
 #
 # Feel free to contribute to this project at:
-#    http://github.com/nvie/gitflow
+#    http://github.com/petervanderdoes/gitflow
 #
+# Authors:
+# Copyright 2012-2016 Peter van der Does. All rights reserved.
+#
+# Original Author:
 # Copyright 2010 Vincent Driessen. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#    1. Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-#    2. Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY VINCENT DRIESSEN ``AS IS'' AND ANY EXPRESS OR
-# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
-# EVENT SHALL VINCENT DRIESSEN OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# The views and conclusions contained in the software and documentation are
-# those of the authors and should not be interpreted as representing official
-# policies, either expressed or implied, of Vincent Driessen.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
 usage() {
-	echo "usage: git flow init [-fd]"
+	OPTIONS_SPEC="\
+git flow init
+
+Initialize a new git repo with support for the branching model.
+----
+
+git flow init gitlab 
+
+Allow flow to automatically create merge requests on your behalf on gitlab
+----
+
+A personal access token is needed, create one at https://gitlab.com/profile/personal_access_tokens
+
+git flow init github 
+
+Allow flow to automatically create pull requests on your behalf on github
+----
+
+Your username and a personal access token are need, create one at https://github.com/settings/tokens
+
+----
+
+For more specific help type the command followed by --help
+--
+"
+	flags_help
 }
 
+# Parse arguments and set common variables
 parse_args() {
-	# parse options
 	FLAGS "$@" || exit $?
 	eval set -- "${FLAGS_ARGV}"
 }
 
 # Default entry when no SUBACTION is given
 cmd_default() {
-	DEFINE_boolean force false 'force setting of gitflow branches, even if already configured' f
-	DEFINE_boolean defaults false 'use default branch naming conventions' d
+	OPTIONS_SPEC="\
+git flow init [-h] [-d] [-f]
+
+Setup a git repository for git flow usage. Can also be used to start a git repository.
+--
+h,help!             Show this help
+showcommands!       Show git commands while executing them
+d,[no]defaults      Use default branch naming conventions
+f,[no]force         Force setting of gitflow branches, even if already configured
+
+Use config file location
+local!   use repository config file
+global!  use global config file
+system!  use system config file
+file=    use given config file
+"	
+	     git config alias.start 'flow feature start'
+	     git config alias.finish 'flow feature finish'
+		 git config alias.fin 'flow feature finish'
+		 git config alias.stop 'flow feature finish'
+	     git config alias.resume 'flow feature resume'
+		 git config alias.res 'flow feature resume'
+	     git config alias.interrupt 'flow feature interrupt'
+ 		 git config alias.int 'flow feature interrupt'
+	     git config alias.pause 'flow feature pause'
+		 git config alias.p 'flow feature pause'
+		 git config alias.hotfix 'flow hotfix' 
+		 git config alias.hotfix 'flow hotfix' 
+		 git config alias.support 'flow support' 
+		 git config alias.release 'flow release' 
+
+	local gitflow_config_option should_check_existence branchcount guess
+	local master_branch develop_branch default_suggestion answer prefix
+
+	# Define flags
+	DEFINE_boolean 'force' false 'force setting of gitflow branches, even if already configured' f
+	DEFINE_boolean 'defaults' false 'use default branch naming conventions' d
+	DEFINE_boolean 'local' false 'use repository config file'
+	DEFINE_boolean 'global' false 'use global config file'
+	DEFINE_boolean 'system' false 'use system config file'
+	DEFINE_string 'file' "" 'use given config file'
+
+	# Override defaults with values from config
+	gitflow_override_flag_boolean   "init.defaults"   "defaults"
+
+	# Parse arguments
 	parse_args "$@"
 
-
+	if [ "$FLAGS_file" != "" ]; then
+		gitflow_config_option="--file '$FLAGS_file''"
+	elif flag local; then
+		gitflow_config_option="--local"
+	elif flag global; then
+		gitflow_config_option="--global"
+	elif flag system; then
+		gitflow_config_option="--system"
+	else
+		gitflow_config_option=""
+	fi
 
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
 		git_do init
 	else
-		# assure that we are not working in a repo with local changes
+		# Assure that we are not working in a repo with local changes
 		git_repo_is_headless || require_clean_working_tree
 	fi
 
-	# running git flow init on an already initialized repo is fine
+	# Running git flow init on an already initialized repo is fine
 	if gitflow_is_initialized && ! flag force; then
 		warn "Already initialized for gitflow."
 		warn "To force reinitialization, use: git flow init -f"
 		exit 0
 	fi
 
-	local branch_count
-	local answer
+	if flag defaults; then
+		warn "Using default branch names."
+	fi
 
-    if flag defaults; then
-        warn "Using default branch names."
-    fi
+	# Add a master branch if no such branch exists yet
 
-	# add a master branch if no such branch exists yet
-	local master_branch
 	if gitflow_has_master_configured && ! flag force; then
 		master_branch=$(git config --get gitflow.branch.master)
 	else
@@ -86,8 +161,6 @@ cmd_default() {
 		# 2. Some branches do already exist
 		#    We will disallow creation of new master/develop branches and
 		#    rather allow to use existing branches for git-flow.
-		local default_suggestion
-		local should_check_existence
 		branch_count=$(git_local_branches | wc -l)
 		if [ "$branch_count" -eq 0 ]; then
 			echo "No branches exist yet. Base branches must be created now."
@@ -100,13 +173,18 @@ cmd_default() {
 
 			should_check_existence=YES
 			default_suggestion=
-			for guess in $(git config --get gitflow.branch.master) \
-			             'production' 'main' 'master'; do
+			for guess in $(git config --get gitflow.branch.master) 'production' 'main' 'master'; do
 				if git_local_branch_exists "$guess"; then
 					default_suggestion="$guess"
 					break
 				fi
 			done
+
+		fi
+
+		if [ -z $default_suggestion ] && flag defaults; then
+				should_check_existence=YES
+				default_suggestion=$(git config --get gitflow.branch.master || echo master)
 		fi
 
 		printf "Branch name for production releases: [$default_suggestion] "
@@ -117,31 +195,27 @@ cmd_default() {
 		fi
 		master_branch=${answer:-$default_suggestion}
 
-		# check existence in case of an already existing repo
+		# Check existence in case of an already existing repo
 		if [ "$should_check_existence" = "YES" ]; then
-			# if no local branch exists and a remote branch of the same
+			# If no local branch exists and a remote branch of the same
 			# name exists, checkout that branch and use it for master
-			if ! git_local_branch_exists "$master_branch" && \
-				git_remote_branch_exists "origin/$master_branch"; then
+			if ! git_local_branch_exists "$master_branch" && git_remote_branch_exists "origin/$master_branch"; then
 				git_do branch "$master_branch" "origin/$master_branch" >/dev/null 2>&1
 			elif ! git_local_branch_exists "$master_branch"; then
 				die "Local branch '$master_branch' does not exist."
 			fi
 		fi
 
-		# store the name of the master branch
-		git_do config gitflow.branch.master "$master_branch"
+		# Store the name of the master branch
+		git_do config $gitflow_config_option gitflow.branch.master "$master_branch"
 	fi
 
-	# add a develop branch if no such branch exists yet
-	local develop_branch
+	# Add a develop branch if no such branch exists yet
 	if gitflow_has_develop_configured && ! flag force; then
 		develop_branch=$(git config --get gitflow.branch.develop)
 	else
 		# Again, the same two cases as with the master selection are
 		# considered (fresh repo or repo that contains branches)
-		local default_suggestion
-		local should_check_existence
 		branch_count=$(git_local_branches | grep -v "^${master_branch}\$" | wc -l)
 		if [ "$branch_count" -eq 0 ]; then
 			should_check_existence=NO
@@ -153,19 +227,17 @@ cmd_default() {
 
 			should_check_existence=YES
 			default_suggestion=
-			for guess in $(git config --get gitflow.branch.develop) \
-			             'develop' 'int' 'integration' 'master'; do
+			for guess in $(git config --get gitflow.branch.develop) 'develop' 'int' 'integration' 'master'; do
 				if git_local_branch_exists "$guess" && [ "$guess" != "$master_branch" ]; then
 					default_suggestion="$guess"
 					break
 				fi
 			done
+		fi
 
-			if [ -z $default_suggestion ]; then
-				should_check_existence=NO
-				default_suggestion=$(git config --get gitflow.branch.develop || echo develop)
-			fi
-
+		if [ -z $default_suggestion ] && flag defaults; then
+			should_check_existence=YES
+			default_suggestion=$(git config --get gitflow.branch.develop || echo develop)
 		fi
 
 		printf "Branch name for \"next release\" development: [$default_suggestion] "
@@ -180,14 +252,13 @@ cmd_default() {
 			die "Production and integration branches should differ."
 		fi
 
-		# check existence in case of an already existing repo
+		# Check existence in case of an already existing repo
 		if [ "$should_check_existence" = "YES" ]; then
-			git_local_branch_exists "$develop_branch" || \
-				die "Local branch '$develop_branch' does not exist."
+			git_local_branch_exists "$develop_branch" || die "Local branch '$develop_branch' does not exist."
 		fi
 
-		# store the name of the develop branch
-		git_do config gitflow.branch.develop "$develop_branch"
+		# Store the name of the develop branch
+		git_do config $gitflow_config_option gitflow.branch.develop "$develop_branch"
 	fi
 
 	# Creation of HEAD
@@ -222,37 +293,25 @@ cmd_default() {
 		created_gitflow_branch=1
 	fi
 
-	# assert the gitflow repo has been correctly initialized
+	# Assert the git-flow repo has been correctly initialized
 	gitflow_is_initialized
 
-	# switch to develop branch if its newly created
+	# Switch to develop branch if its newly created
 	if [ $created_gitflow_branch -eq 1 ]; then
-		git_do checkout -q "$develop_branch"
+		git_do checkout -q "$develop_branch" || die "Could not check out branch '$develop_branch'."
 	fi
 
-	# finally, ask the user for naming conventions (branch and tag prefixes)
+	# Ask the user for naming conventions (branch and tag prefixes )
 	if flag force || \
-	   ! git config --get gitflow.prefix.feature >/dev/null 2>&1 ||
-	   ! git config --get gitflow.prefix.release >/dev/null 2>&1 ||
-	   ! git config --get gitflow.prefix.hotfix >/dev/null 2>&1 ||
-	   ! git config --get gitflow.prefix.support >/dev/null 2>&1 ||
-	   ! git config --get gitflow.prefix.versiontag >/dev/null 2>&1; then
+		! git config --get gitflow.prefix.feature >/dev/null 2>&1 ||
+		! git config --get gitflow.prefix.bugfix >/dev/null 2>&1 ||
+		! git config --get gitflow.prefix.release >/dev/null 2>&1 ||
+		! git config --get gitflow.prefix.hotfix >/dev/null 2>&1 ||
+		! git config --get gitflow.prefix.support >/dev/null 2>&1 ||
+		! git config --get gitflow.prefix.versiontag >/dev/null 2>&1; then
 		echo
 		echo "How to name your supporting branch prefixes?"
 	fi
-
-		 git config --global alias.start 'flow feature start'
-	     git config --global alias.finish 'flow feature finish'
-		 git config --global alias.fin 'flow feature finish'
-		 git config --global alias.stop 'flow feature finish'
-	     git config --global alias.resume 'flow feature resume'
-		 git config --global alias.res 'flow feature resume'
-	     git config --global alias.interrupt 'flow feature interrupt'
- 		 git config --global alias.int 'flow feature interrupt'
-	     git config --global alias.pause 'flow feature pause'
-		 git config --global alias.p 'flow feature pause'
-
-	local prefix
 
 	# Feature branches
 	if ! git config --get gitflow.prefix.feature >/dev/null 2>&1 || flag force; then
@@ -264,7 +323,20 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git_do config gitflow.prefix.feature "$prefix"
+		git_do config $gitflow_config_option gitflow.prefix.feature "$prefix"
+	fi
+
+	# Bugfix branches
+	if ! git config --get gitflow.prefix.bugfix >/dev/null 2>&1 || flag force; then
+		default_suggestion=$(git config --get gitflow.prefix.bugfix || echo bugfix/)
+		printf "Bugfix branches? [$default_suggestion] "
+		if noflag defaults; then
+			read answer
+		else
+			printf "\n"
+		fi
+		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
+		git_do config $gitflow_config_option gitflow.prefix.bugfix "$prefix"
 	fi
 
 	# Release branches
@@ -277,9 +349,8 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git_do config gitflow.prefix.release "$prefix"
+		git_do config $gitflow_config_option gitflow.prefix.release "$prefix"
 	fi
-
 
 	# Hotfix branches
 	if ! git config --get gitflow.prefix.hotfix >/dev/null 2>&1 || flag force; then
@@ -291,9 +362,8 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git_do config gitflow.prefix.hotfix "$prefix"
+		git_do config $gitflow_config_option gitflow.prefix.hotfix "$prefix"
 	fi
-
 
 	# Support branches
 	if ! git config --get gitflow.prefix.support >/dev/null 2>&1 || flag force; then
@@ -305,9 +375,8 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git_do config gitflow.prefix.support "$prefix"
+		git_do config $gitflow_config_option gitflow.prefix.support "$prefix"
 	fi
-
 
 	# Version tag prefix
 	if ! git config --get gitflow.prefix.versiontag >/dev/null 2>&1 || flag force; then
@@ -319,9 +388,25 @@ cmd_default() {
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git_do config gitflow.prefix.versiontag "$prefix"
+		git_do config $gitflow_config_option gitflow.prefix.versiontag "$prefix"
 	fi
- 	 mkdir -p "./.git/.gitflow"
+
+	# Paths
+	if ! git config --get gitflow.path.hooks >/dev/null 2>&1 || flag force; then
+		DOT_GIT_DIR=$(git rev-parse --git-dir)
+		DOT_GIT_DIR=$(cd "$DOT_GIT_DIR" >/dev/null 2>&1 && pwd)
+		default_suggestion=$(git config --get gitflow.path.hooks || echo "$DOT_GIT_DIR"/hooks)
+		printf "Hooks and filters directory? [$default_suggestion] "
+		if noflag defaults; then
+			read answer
+		else
+			printf "\n"
+		fi
+		[ "$answer" = "-" ] && hooks_dir= || hooks_dir=${answer:-$default_suggestion}
+		git_do config $gitflow_config_option gitflow.path.hooks "$hooks_dir"
+	fi
+
+	 mkdir -p "./.git/.gitflow"
 	 git checkout --orphan flopharn
      git rm * --quiet --ignore-unmatch
    	 git commit --allow-empty -m "flopharn was created successfully"
@@ -339,13 +424,40 @@ cmd_default() {
 			configure_gitlab_api		
 	 fi
 
+
+
+	# TODO: what to do with origin?
 }
 
+cmd_help() {
+	usage
+	exit 0
+}
+
+
 cmd_github() {
+	OPTIONS_SPEC="\
+git flow init github 
+
+Allow flow to automatically create pull requests on your behalf on github
+----
+
+Your username and a personal access token are need, create one at https://github.com/settings/tokens
+"
+	parse_args "$@"
 	configure_github_api
 }
 
 cmd_gitlab() {
+	OPTIONS_SPEC="\
+git flow init gitlab 
+
+Allow flow to automatically create merge requests on your behalf on gitlab
+----
+
+A personal access token is needed, create one at https://gitlab.com/profile/personal_access_tokens
+"
+	parse_args "$@"
 	configure_gitlab_api
 }
 
@@ -400,14 +512,4 @@ configure_gitlab_api() {
 			;;
 	esac
 
-}
-
-
-
-
-
-
-cmd_help() {
-	usage
-	exit 0
 }
