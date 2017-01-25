@@ -517,10 +517,10 @@ cmd_review() {
 		
 
 		 if [ "$GITHUB_REQUEST" -gt 300  ]
-				echo "Failed to create pull request"
 			then
-	        	echo "Pull request created on github please inform the code reviewer by mentioning them in the comments"
+				echo "Failed to create pull request"
 			else
+	        	echo "Pull request created on github please inform the code reviewer by mentioning them in the comments"
 		fi
 		
 	fi
