@@ -1,6 +1,6 @@
 {
   "name": "gitflow",
-  "version": "0.4.8",
+  "version": "0.4.10",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
   "scripts": {
