@@ -996,7 +996,7 @@ h,help!          Show this help
 "
 
 	parse_args "$@"
-	require_name_arg
+	gitflow_require_name_arg
 
 	# sanity checks
 	require_branch "$BRANCH"
