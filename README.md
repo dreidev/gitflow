@@ -24,7 +24,9 @@ A quick cheatsheet was made by Daniel Kummer:
 
 ## Installing git-flow
 
-npm -i gitflow (Mac and Linux users only)
+```shell
+npm i -g gitflow #Mac and Linux users only, will fail on windows
+```
 
 ## Contributing
 

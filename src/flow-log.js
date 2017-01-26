@@ -1,7 +1,7 @@
 require('shelljs/global');
 const program = require('commander');
 program.parse(process.argv);
-var args = program.args;
+var args = program.args.toString().replace(',',' ');
 
 if (!which('git')) {
   echo('Sorry, this script requires git');
