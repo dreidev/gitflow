@@ -28,6 +28,9 @@ A quick cheatsheet was made by Daniel Kummer:
 npm i -g gitflow #Mac and Linux users only, will fail on windows
 ```
 
+## For help, questions, feature requests and bug reports
+open an issue.
+
 ## Contributing
 
 Fork the repository.  Then, run:
