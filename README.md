@@ -2,7 +2,7 @@
 
 A collection of Git extensions to provide high-level repository operations
 for Vincent Driessen's [branching model](http://nvie.com/git-model "original
-blog post"). This fork adds functionality not added to the original branch.
+blog post"). This fork adds functionality not added to the original branch. [wiki](http://github.com/dreidev/gitflow/wiki)
 
 
 ## Getting started
@@ -27,6 +27,9 @@ A quick cheatsheet was made by Daniel Kummer:
 ```shell
 npm i -g gitflow #Mac and Linux users only, will fail on windows
 ```
+
+## For help, questions, feature requests and bug reports
+open an issue.
 
 ## Contributing
 
