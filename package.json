@@ -1,6 +1,6 @@
 {
   "name": "gitflow",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
   "scripts": {
@@ -26,8 +26,13 @@
     "drazious",
     "cmosh"
   ],
-  "author": "cmosh <cmosh@live.com>",
-  "license": "MIT",
+  "author": {
+    "name": "Clive Makamara",
+    "email": "clive@makamara.me",
+    "url": "http://github.com/cmosh",
+    "organization": "dreidev"
+    },
+  "license": "LGPL",
   "bugs": {
     "url": "https://github.com/dreidev/gitflow/issues"
   },
