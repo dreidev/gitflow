@@ -2,7 +2,7 @@
 
 A collection of Git extensions to provide high-level repository operations
 for Vincent Driessen's [branching model](http://nvie.com/git-model "original
-blog post"). This fork adds functionality not added to the original branch.
+blog post"). This fork adds functionality not added to the original branch. [wiki](http://github.com/dreidev/gitflow/wiki)
 
 
 ## Getting started
