@@ -1,0 +1,39 @@
+{
+  "name": "gitflow",
+  "version": "0.4.8",
+  "description": "Modified gitflow for dreidev",
+  "main": "src/index.js",
+  "scripts": {
+    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh install stable",
+    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh uninstall"
+  },
+  "files": [
+    "src/"
+  ],
+  "bin": {
+    "flow": "src/flow.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dreidev/gitflow.git"
+  },
+  "keywords": [
+    "gitflow",
+    "dreidev",
+    "version",
+    "control",
+    "git",
+    "drazious",
+    "cmosh"
+  ],
+  "author": "cmosh <cmosh@live.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dreidev/gitflow/issues"
+  },
+  "homepage": "https://github.com/dreidev/gitflow#readme",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "shelljs": "^0.7.6"
+  }
+}
