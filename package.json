@@ -3,15 +3,11 @@
   "version": "0.4.11",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
-  "scripts": {
-    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh install stable",
-    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh uninstall"
-  },
   "files": [
     "src/"
   ],
   "bin": {
-    "flow": "src/flow.js"
+    "flow": "./src/flow.js"
   },
   "repository": {
     "type": "git",
@@ -31,14 +27,40 @@
     "email": "clive@makamara.me",
     "url": "http://github.com/cmosh",
     "organization": "dreidev"
-    },
+  },
   "license": "LGPL",
   "bugs": {
     "url": "https://github.com/dreidev/gitflow/issues"
   },
   "homepage": "https://github.com/dreidev/gitflow#readme",
   "dependencies": {
+    "babel": "^6.5.2",
+    "camo": "^0.12.3",
+    "chalk": "^1.1.3",
     "commander": "^2.9.0",
-    "shelljs": "^0.7.6"
-  }
+    "mongoose": "^4.8.2",
+    "nedb": "^1.8.0",
+    "nodegit": "^0.17.0",
+    "shelljs": "^0.7.6",
+    "tingodb": "^0.5.1",
+    "tungus": "0.0.5",
+    "vorpal": "^1.11.4"
+  },
+  "nexe": {
+    "input": "./src/flow.js",
+    "output": "flow^$",
+    "temp": "build",
+    "browserify": {
+        "requires": [],
+        "excludes": [],
+        "paths": []
+    },
+    "runtime": {
+        "framework": "node",
+        "version": "6.9.1",
+        "js-flags": "--use_strict",
+        "ignoreFlags": true
+    }
+}
+
 }

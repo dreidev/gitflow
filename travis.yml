@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "6"
+  - "5"
+  - "4"
+  - "iojs"
+notifications:
+  email: false
+cache:
+  directories:
+    - node_modules
+    - build
+script: 
+  - npm i -g nexe
+  - nexe
