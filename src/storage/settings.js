@@ -6,13 +6,11 @@ var settingCollection = Waterline.Collection.extend({
     attributes: {
         name: 'string',
         value: 'string',
-
         // Add a reference to User
         owner: {
             model: 'user'
         }
     }
 });
-
 
 module.exports = userCollection;
