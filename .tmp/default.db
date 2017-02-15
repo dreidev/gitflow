@@ -1,0 +1,103 @@
+{
+  "data": {
+    "user": [
+      {
+        "name": "cmosh",
+        "email": "usew",
+        "createdAt": "2017-02-14T13:32:30.380Z",
+        "updatedAt": "2017-02-14T13:32:30.380Z",
+        "id": 1
+      },
+      {
+        "name": "cmosh",
+        "email": "usew",
+        "createdAt": "2017-02-14T13:34:29.809Z",
+        "updatedAt": "2017-02-14T13:34:29.809Z",
+        "id": 2
+      }
+    ],
+    "project": [],
+    "entry": []
+  },
+  "schema": {
+    "user": {
+      "name": {
+        "type": "string"
+      },
+      "email": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer",
+        "autoIncrement": true,
+        "primaryKey": true,
+        "unique": true
+      },
+      "createdAt": {
+        "type": "datetime"
+      },
+      "updatedAt": {
+        "type": "datetime"
+      }
+    },
+    "project": {
+      "repoUrl": {
+        "type": "string"
+      },
+      "origin": {
+        "type": "string"
+      },
+      "owner": {
+        "type": "integer",
+        "model": "user",
+        "foreignKey": true,
+        "alias": "owner"
+      },
+      "id": {
+        "type": "integer",
+        "autoIncrement": true,
+        "primaryKey": true,
+        "unique": true
+      },
+      "createdAt": {
+        "type": "datetime"
+      },
+      "updatedAt": {
+        "type": "datetime"
+      }
+    },
+    "entry": {
+      "timestamp": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "tracking": {
+        "type": "integer",
+        "model": "project",
+        "foreignKey": true,
+        "alias": "tracking"
+      },
+      "id": {
+        "type": "integer",
+        "autoIncrement": true,
+        "primaryKey": true,
+        "unique": true
+      },
+      "createdAt": {
+        "type": "datetime"
+      },
+      "updatedAt": {
+        "type": "datetime"
+      }
+    }
+  },
+  "counters": {
+    "user": {
+      "id": 2
+    },
+    "project": {},
+    "entry": {}
+  }
+}
