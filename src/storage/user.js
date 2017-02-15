@@ -6,10 +6,14 @@ var userCollection = Waterline.Collection.extend({
     attributes: {
         name: 'string',
         email: 'string',
-
         // Add a reference to Projects
         projects: {
             collection: 'project',
+            via: 'owner'
+        },
+        // Add a reference to Settings
+        settings: {
+            collection: 'setting',
             via: 'owner'
         }
     }

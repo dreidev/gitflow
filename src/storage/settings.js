@@ -5,7 +5,12 @@ var settingCollection = Waterline.Collection.extend({
     connection: 'default',
     attributes: {
         name: 'string',
-        value: 'string'
+        value: 'string',
+
+        // Add a reference to User
+        owner: {
+            model: 'user'
+        }
     }
 });
 
