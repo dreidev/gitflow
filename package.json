@@ -1,11 +1,11 @@
 {
   "name": "gitflow",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
   "scripts": {
-    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh install stable",
-    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh uninstall"
+    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; if [ -z ${TRAVIS+x} ]; then sudo bash gitflow-installer.sh install stable; else bash gitflow-installer.sh install stable;exit 0;fi",
+    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; if [ -z ${TRAVIS+x} ]; then sudo bash gitflow-installer.sh uninstall; else  sudo gitflow-installer.sh uninstall;exit 0;fi"
   },
   "files": [
     "src/"
