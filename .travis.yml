@@ -1,5 +1,6 @@
-sudo: required
 language: node_js
+env:
+  - TRAVIS=true
 node_js:
   - "7"
   - "6"
