@@ -232,9 +232,9 @@ F,[no]fetch      Fetch from origin before performing local operation
 
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 
-	breakout-timeline -nf $NAME -p $PROJECT
+	breakout-flow -nf $NAME -p $PROJECT
 
-	breakout-timeline -lf $NAME -p $PROJECT -m "Time Required:$TIME_REQUIRED"
+	breakout-flow -lf $NAME -p $PROJECT -m "Time Required:$TIME_REQUIRED"
 
 	echo
 	echo "Summary of actions:"
@@ -446,9 +446,9 @@ no-ff!                 Never fast-forward during the merge
 
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 
-	breakout-timeline -lf $NAME -p $PROJECT -m "Finished $NAME, merges into $DEVELOP_BRANCH"
+	breakout-flow -lf $NAME -p $PROJECT -m "Finished $NAME, merges into $DEVELOP_BRANCH"
 
-	breakout-timeline -xf $NAME -p $PROJECT
+	breakout-flow -xf $NAME -p $PROJECT
 
 	helper_finish_cleanup
 }
@@ -560,7 +560,7 @@ showcommands!    Show git commands while executing them
 
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 	
-	breakout-timeline -lf $NAME -p $PROJECT -m "Published $NAME sent for review"
+	breakout-flow -lf $NAME -p $PROJECT -m "Published $NAME sent for review"
 
 
 
@@ -889,8 +889,8 @@ cmd_pause() {
 	
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 		
-	breakout-timeline -lf $NAME -p $PROJECT -m "Took a break"
-	breakout-timeline -hf $NAME -p $PROJECT 
+	breakout-flow -lf $NAME -p $PROJECT -m "Took a break"
+	breakout-flow -hf $NAME -p $PROJECT 
 
 	echo
 	echo "Summary of actions:"
@@ -934,8 +934,8 @@ cmd_interrupt() {
 
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 		
-	breakout-timeline -lf $NAME -p $PROJECT -m "Was interrupted"
-	breakout-timeline -hf $NAME -p $PROJECT 
+	breakout-flow -lf $NAME -p $PROJECT -m "Was interrupted"
+	breakout-flow -hf $NAME -p $PROJECT 
 
 
 	echo
@@ -970,7 +970,7 @@ h,help!          Show this help
 		echo "Why were you interrupted?"
 		read INTERRUPT_REASON
 
-		breakout-timeline -lf $NAME -p $PROJECT -m "Reason for interrupt $INTERRUPT_REASON"
+		breakout-flow -lf $NAME -p $PROJECT -m "Reason for interrupt $INTERRUPT_REASON"
 	
 		else
 		INTERRUPT_REASON="No reason :)"
@@ -987,7 +987,7 @@ h,help!          Show this help
 
 	git branch -D "$BRANCH-paused"
 
-	breakout-timeline -rf $NAME -p $PROJECT 
+	breakout-flow -rf $NAME -p $PROJECT 
 
 	echo
 	echo "Summary of actions:"
@@ -1029,8 +1029,8 @@ h,help!          Show this help
 	git_do checkout "$BRANCH"
 
 	PROJECT="$(basename $(git rev-parse --show-toplevel))"
-	breakout-timeline -lf $NAME -p $PROJECT -m "Sent $NAME for review"
-	breakout-timeline -xf $NAME -p $PROJECT 
+	breakout-flow -lf $NAME -p $PROJECT -m "Sent $NAME for review"
+	breakout-flow -xf $NAME -p $PROJECT 
 
 
 	GIT_URL=$(git config --get remote.origin.url)

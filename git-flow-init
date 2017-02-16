@@ -414,7 +414,7 @@ file=    use given config file
 
 
 	 PROJECT="$(basename $(git rev-parse --show-toplevel))"
-	 breakout-timeline -np $PROJECT
+	 breakout-flow -np $PROJECT
 
 
 	 if  git remote -v | grep github > /dev/null	
