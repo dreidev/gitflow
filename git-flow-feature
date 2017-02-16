@@ -230,16 +230,11 @@ F,[no]fetch      Fetch from origin before performing local operation
 	echo "How long do you think this feature will take in hours (e.g 1.5)?"
 	read TIME_REQUIRED
 
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 
+	breakout-flow -nf $NAME -p $PROJECT
 
-	echo $TIME_REQUIRED >> "./.git/.gitflow/.timelog-feature-$NAME"
-
-	git add .
-
-	git commit --allow-empty -m "--Flow message(start) -- Started working on $BRANCH on $(date) estimated Time $TIME_REQUIRED hour(s)"
-
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
-
+	breakout-flow -lf $NAME -p $PROJECT -m "Time Required:$TIME_REQUIRED"
 
 	echo
 	echo "Summary of actions:"
@@ -444,29 +439,16 @@ no-ff!                 Never fast-forward during the merge
 	# When no merge conflict is detected, just clean up the feature branch
 	gitflow_config_remove_base_branch "$BRANCH"
 
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
+	######################
 
-	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
-	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$NAME | head -1)
+	#TODO
+	#Insert timer here
 
-	TIME_USED=$((LAST_TIME-PREV_TIME))
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
 
-	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$NAME"
+	breakout-flow -lf $NAME -p $PROJECT -m "Finished $NAME, merges into $DEVELOP_BRANCH"
 
-	if [ -f ./.git/.gitflow/.breaktime-feature-$NAME ];
-		then
-		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.breaktime-feature-$NAME)
-		else
-		TOTAL_BREAK_TIME=0
-	fi
-
-	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.seconds-feature-$NAME)
-	
-	TIME_EXPECTED=$(head -n 1 ./.git/.gitflow/.timelog-feature-$NAME)
-	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
-	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
-
-	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expectde time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF"
+	breakout-flow -xf $NAME -p $PROJECT
 
 	helper_finish_cleanup
 }
@@ -573,8 +555,14 @@ showcommands!    Show git commands while executing them
 	git_do push -u "$ORIGIN" "$BRANCH:$BRANCH"
 	git_do fetch -q "$ORIGIN" "$BRANCH" || die "Could not fetch branch '$BRANCH' from remote '$ORIGIN'."
 	git_do checkout "$BRANCH" || die "Could not check out branch '$BRANCH'."
-
+	
 	run_post_hook "$NAME" "$ORIGIN" "$BRANCH"
+
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
+	
+	breakout-flow -lf $NAME -p $PROJECT -m "Published $NAME sent for review"
+
+
 
 	echo
 	echo "Summary of actions:"
@@ -891,31 +879,18 @@ cmd_pause() {
 	current_name=$(echo "$current_branch" | sed "s ^$PREFIX  g")
 
 	
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$current_name"
-
-	
-	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$current_name | head -1)
-	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$current_name | head -1)
-
-	TIME_USED=$((LAST_TIME-PREV_TIME))
-
-	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$current_name"
-
-
-
-	seconds=$TIME_USED; TIMESTAMP=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
-
 
 	git add --all .
 	git commit -m "$current_branch/WIP"
-	git commit --allow-empty -m "--Flow message(pause) -- $current_branch/WIP time-paused:$(date), time taken thus far:$TIMESTAMP"
-
 
 	git checkout -b  "$current_branch-paused" "flopharn"
 	git rm * --quiet --ignore-unmatch
 
 	
-
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
+		
+	breakout-flow -lf $NAME -p $PROJECT -m "Took a break"
+	breakout-flow -hf $NAME -p $PROJECT 
 
 	echo
 	echo "Summary of actions:"
@@ -947,37 +922,26 @@ cmd_interrupt() {
 
 	current_branch=$(git branch --no-color | grep '^\* ' | grep -v 'no branch' | sed 's/^* //g')
 	current_name=$(echo "$current_branch" | sed "s ^$PREFIX  g")
+	
 
-
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$current_name"
-
-
-	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$current_name | head -1)
-	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$current_name | head -1)
-
-	TIME_USED=$((LAST_TIME-PREV_TIME))
-
-	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$current_name"
-
-	echo "dummy" >> "./.git/.gitflow/.interrupt-feature-$current_name"
-
-
-	seconds=$TIME_USED; TIMESTAMP=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
-
+	echo "dummy" >> "./$DOT_GIT_DIR/.gitflow/.interrupt-feature-$current_name"
 
 	git add --all .
 	git commit -m "$current_branch/WIP"
-	git commit --allow-empty -m "--Flow message(interrupt) --$current_branch/WIP You were disturbed on $(date), time taken so far:$TIMESTAMP"
-
-
 	git checkout -b  "$current_branch-paused" "flopharn"
 	git rm * --quiet --ignore-unmatch
+
+
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
+		
+	breakout-flow -lf $NAME -p $PROJECT -m "Was interrupted"
+	breakout-flow -hf $NAME -p $PROJECT 
 
 
 	echo
 	echo "Summary of actions:"
 	echo "- Created orphan branch called '$current_branch-paused'"
-	echo "- You are now free to take a break, you have spent $TIMESTAMP in this session"
+	echo "- You are now free to take a break"
 	echo ""
 	echo "Now, have some coffee and when you are  done, use:"
 	echo ""
@@ -994,46 +958,36 @@ Allows you to continue working on a feature after using pause or interrupt
 ----
 h,help!          Show this help
 "
-
-	parse_args "$@"
+    PROJECT="$(basename $(git rev-parse --show-toplevel))"
+ 	parse_args "$@"
 	gitflow_require_name_arg
 
 	# sanity checks
 	require_branch "$BRANCH"
 
-	if [ -f ./.git/.gitflow/.interrupt-feature-$NAME ];
+	if [ -f ./$DOT_GIT_DIR/.gitflow/.interrupt-feature-$NAME ];
 		then
 		echo "Why were you interrupted?"
 		read INTERRUPT_REASON
-		rm ./.git/.gitflow/.interrupt-feature-$NAME
+
+		breakout-flow -lf $NAME -p $PROJECT -m "Reason for interrupt $INTERRUPT_REASON"
+	
 		else
 		INTERRUPT_REASON="No reason :)"
 	fi
 
 
-	LAST_TIME=$(date +%s)
-	PREV_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
-
-	BREAK_TIME=$((LAST_TIME-PREV_TIME))
-	
-
-	echo "$BREAK_TIME" >> "./.git/.gitflow/.breaktime-feature-$NAME"
-
-
-	seconds=$BREAK_TIME; TIME_OFF=$((seconds/86400))" days "$(date -d "1970-01-01 + $seconds seconds" "+%H hours %M minutes %S seconds")
-
     
 
 	git add .
+
+	git commit --allow-empty -m "--Flow message(resume)"
 
 	git checkout "$BRANCH"
 
 	git branch -D "$BRANCH-paused"
 
-	git commit --allow-empty -m "--Flow message(resume) --$BRANCH/Back to Work at:$(date) Time off:$TIME_OFF, Reason: $INTERRUPT_REASON"
-
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
-
+	breakout-flow -rf $NAME -p $PROJECT 
 
 	echo
 	echo "Summary of actions:"
@@ -1074,30 +1028,10 @@ h,help!          Show this help
 	git_do config "branch.$BRANCH.merge" "refs/heads/$BRANCH"
 	git_do checkout "$BRANCH"
 
+	PROJECT="$(basename $(git rev-parse --show-toplevel))"
+	breakout-flow -lf $NAME -p $PROJECT -m "Sent $NAME for review"
+	breakout-flow -xf $NAME -p $PROJECT 
 
-	echo $(date +%s)  >> "./.git/.gitflow/.timelog-feature-$NAME"
-
-	LAST_TIME=$(tail -1 .git/.gitflow/.timelog-feature-$NAME | head -1)
-	PREV_TIME=$(tail -2 .git/.gitflow/.timelog-feature-$NAME | head -1)
-
-	TIME_USED=$((LAST_TIME-PREV_TIME))
-
-	echo "$TIME_USED" >> "./.git/.gitflow/.seconds-feature-$NAME"
-
-	if [ -f ./.git/.gitflow/.breaktime-feature-$NAME ];
-		then
-		TOTAL_BREAK_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.breaktime-feature-$NAME)
-		else
-		TOTAL_BREAK_TIME=0
-	fi
-
-	TOTAL_TIME=$(awk '{ sum += $1 } END { print sum }' ./.git/.gitflow/.seconds-feature-$NAME)
-	
-	TIME_EXPECTED=$(head -n 1 ./.git/.gitflow/.timelog-feature-$NAME)
-	FINALTIME=$((TOTAL_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_TIME seconds" "+%H hours %M minutes %S seconds")
-	TOTAL_TIME_OFF=$((TOTAL_BREAK_TIME/86400))" days "$(date -d "1970-01-01 + $TOTAL_BREAK_TIME seconds" "+%H hours %M minutes %S seconds")
-
-	git commit --allow-empty -m "--Flow message(finish) --$BRANCH was completed on $(date), total time taken:$FINALTIME expected time was $TIME_EXPECTED hour(s), Time spent on breaks was $TOTAL_TIME_OFF"
 
 	GIT_URL=$(git config --get remote.origin.url)
 	GIT_URL_WITHOUT_SUFFIX="${GIT_URL%.*}"
@@ -1106,11 +1040,11 @@ h,help!          Show this help
 	OWNER=$(basename $(echo $URL_WITH_OWNER | tr ":" /))
 	DEVELOPMENT_BRANCH=$(git config --get gitflow.branch.develop)
 
-	if [ -f ./.git/.gitflow/.github_token ];
+	if [ -f ./$DOT_GIT_DIR/.gitflow/.github_token ];
 		then
 		
-		GITHUB_USERNAME=$(tail -1 ./.git/.gitflow/.github_username | head -1)
-		GITHUB_TOKEN=$(tail -1 ./.git/.gitflow/.github_token | head -1)
+		GITHUB_USERNAME=$(tail -1 ./$DOT_GIT_DIR/.gitflow/.github_username | head -1)
+		GITHUB_TOKEN=$(tail -1 ./$DOT_GIT_DIR/.gitflow/.github_token | head -1)
 
         GITHUB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "Content-Type: application/json" \
             -H "Cache-Control: no-cache" \
@@ -1135,10 +1069,10 @@ h,help!          Show this help
 	fi
 
 
-	if [ -f ./.git/.gitflow/.gitlab_token ];
+	if [ -f ./$DOT_GIT_DIR/.gitflow/.gitlab_token ];
 		then
 
-		GITLAB_TOKEN=$(tail -1 ./.git/.gitflow/.gitlab_token | head -1)
+		GITLAB_TOKEN=$(tail -1 ./$DOT_GIT_DIR/.gitflow/.gitlab_token | head -1)
 		USER_NAME=$(git config --get --global user.name)
 
 		GITLAB_REQUEST=$(curl -X POST  --write-out %{http_code} --silent --output /dev/null -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 209ed2f2-a7bd-ab33-a432-1d884669976b" -d '{

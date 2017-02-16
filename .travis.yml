@@ -1,0 +1,13 @@
+language: node_js
+env:
+  - TRAVIS=true
+node_js:
+  - "7"
+  - "6"
+  - "6.1"
+  - "5.11"
+  - "4"
+  - "iojs"
+notifications:
+  email: false
+script: npm install --ignore-scripts
