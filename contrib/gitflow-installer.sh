@@ -80,6 +80,7 @@ install)
 	stable)
 		cd "$REPO_NAME"
 		git checkout master
+		npm i -g breakout-timeline
 		cd "$OLDPWD"
 		;;
 	develop)

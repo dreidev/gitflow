@@ -1,6 +1,6 @@
 {
   "name": "gitflow",
-  "version": "0.4.11",
+  "version": "0.5.0",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "src/"
   ],
   "bin": {
-    "flow": "src/flow.js"
+    "flow": "./git-flow"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,6 @@
     "version",
     "control",
     "git",
-    "drazious",
     "cmosh"
   ],
   "author": {
@@ -31,13 +30,14 @@
     "email": "clive@makamara.me",
     "url": "http://github.com/cmosh",
     "organization": "dreidev"
-    },
+  },
   "license": "LGPL",
   "bugs": {
     "url": "https://github.com/dreidev/gitflow/issues"
   },
   "homepage": "https://github.com/dreidev/gitflow#readme",
   "dependencies": {
+    "breakout-timeline": "0.0.3",
     "commander": "^2.9.0",
     "shelljs": "^0.7.6"
   }
