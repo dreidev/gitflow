@@ -1,6 +1,6 @@
 # git-flow (Dreidev Edition)
 
-[![npm version](https://badge.fury.io/js/gitflow.svg)](https://badge.fury.io/js/gitflow) [![Build Status](https://travis-ci.org/dreidev/gitflow.svg?branch=master)](https://travis-ci.org/dreidev/gitflow)
+[![Build Status](https://travis-ci.org/dreidev/gitflow.svg?branch=master)](https://travis-ci.org/dreidev/gitflow) [![npm version](https://badge.fury.io/js/gitflow.svg)](https://badge.fury.io/js/gitflow) [![Dependencies](https://david-dm.org/dreidev/gitflow.svg)](https://david-dm.org/dreidev/gitflow)
 
 A collection of Git extensions to provide high-level repository operations
 for Vincent Driessen's [branching model](http://nvie.com/git-model "original
