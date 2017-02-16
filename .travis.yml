@@ -8,3 +8,4 @@ node_js:
   - "iojs"
 notifications:
   email: false
+script: npm install --ignore-scripts
