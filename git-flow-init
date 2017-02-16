@@ -409,9 +409,12 @@ file=    use given config file
 	 mkdir -p "./.git/.gitflow"
 	 git checkout --orphan flopharn
      git rm * --quiet --ignore-unmatch
-   	 git commit --allow-empty -m "flopharn was created successfully"
+   	 git commit --allow-empty -m "Git flow Initialized successfully"
 	 git checkout $develop_branch
 
+
+	 PROJECT="$(basename $(git rev-parse --show-toplevel))"
+	 breakout-timeline -np $PROJECT
 
 
 	 if  git remote -v | grep github > /dev/null	
