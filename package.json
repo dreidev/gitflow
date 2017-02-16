@@ -1,22 +1,20 @@
 {
   "name": "gitflow",
-  "version": "0.5.0",
+  "version": "0.5.3",
   "description": "Modified gitflow for dreidev",
   "main": "src/index.js",
   "scripts": {
-    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh install stable",
-    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh; sudo bash gitflow-installer.sh uninstall"
+    "postinstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh;npm i -g breakout-timeline; sudo bash gitflow-installer.sh install stable",
+    "postuninstall": "curl https://raw.githubusercontent.com/dreidev/gitflow/develop/contrib/gitflow-installer.sh > gitflow-installer.sh; chmod a+x gitflow-installer.sh;npm un -g breakout-timeline; sudo bash gitflow-installer.sh uninstall"
   },
   "files": [
     "src/"
   ],
-  "bin": {
-    "flow": "./git-flow"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dreidev/gitflow.git"
   },
+  "os": ["!win32"],
   "keywords": [
     "gitflow",
     "dreidev",
@@ -31,7 +29,7 @@
     "url": "http://github.com/cmosh",
     "organization": "dreidev"
   },
-  "license": "LGPL",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/dreidev/gitflow/issues"
   },
