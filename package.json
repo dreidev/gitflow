@@ -10,11 +10,16 @@
   "files": [
     "src/"
   ],
+  "bin": {
+    "breakout-flow": "./node_modules/breakout-timeline/bin/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dreidev/gitflow.git"
   },
-  "os": ["!win32"],
+  "os": [
+    "!win32"
+  ],
   "keywords": [
     "gitflow",
     "dreidev",
@@ -35,7 +40,7 @@
   },
   "homepage": "https://github.com/dreidev/gitflow#readme",
   "dependencies": {
-    "breakout-timeline": "0.0.3",
+    "breakout-timeline": "0.0.4",
     "commander": "^2.9.0",
     "shelljs": "^0.7.6"
   }
